@@ -12,7 +12,7 @@ This project consist of two parts:
 1. Download PyCharm from [this page](https://www.jetbrains.com/pycharm/download/?section=windows) :
     - if you have a Jetbrain Licence chose PyCharm Professionnal :
 ![image](https://github.com/Malamdg/TipeEnzo/assets/60240119/668953aa-5624-4090-830a-7e8cc2276d01)
-    -  if you don't chose the free PyCharm Community Edition frequentently refered as PyCharm CE :
+    -  if you don't, chose the free PyCharm Community Edition frequentently refered as PyCharm CE :
 ![image](https://github.com/Malamdg/TipeEnzo/assets/60240119/aba18c51-26f3-4cea-a1b2-1faf9cbc25b0)
   
 2. Connect PyCharm to your GitHub account
