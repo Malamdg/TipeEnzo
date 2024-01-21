@@ -1,4 +1,5 @@
 from classes import Game
+import re
 
 
 def main():

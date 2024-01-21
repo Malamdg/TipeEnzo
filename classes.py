@@ -157,37 +157,57 @@ class Pawn:
 
 
 class Player:
-    def __init__(self, _color: PlayerColors, _order: int):
+    def __init__(self, _color: PlayerColors, _turn_order: int):
+        # --- Attributes
+        self.str_type = "User"
         self.color = _color
+
+        # --- Resources
         self.cards = TrainCardsDeck(empty=True)
         self.objectives = ObjectiveCardsDeck()
         self.pawns = [Pawn(self.color) for _ in range(45)]
+
+        # --- In game - functional
+        self.turn_order = _turn_order
         self.score = 0
-        self.order = _order
-        self.str_type = "User"
         self.completed_objectives_count = 0
 
     def __str__(self):
-        return f"Player #{self.order} ({self.str_type}) color : {self.color.value}"
+        return f"Player #{self.turn_order} ({self.str_type}) color : {self.color.value}"
 
-    def __gt__(self, other):
-        # Order for first player list sort
-        if self.score == other.score and self.score == 0:
-            return self.order > other.score
-
-        if self.score != other.score:
-            return self.score > other.score
-
+    def __lt__(self, other):
         if self.score == other.score:
-            if self.completed_objectives_count != other.completed_objectives_count:
-                return self.completed_objectives_count > other.completed_objectives_count
+            # First sort
+            if self.score == 0:
+                return self.turn_order < other.turn_order
 
-            else:
+            if self.completed_objectives_count == other.completed_objectives_count:
                 # Longest railway
                 pass
 
+            return self.completed_objectives_count < other.completed_objectives_count
+
+        return self.score < other.score
+
+    def __gt__(self, other):
+        if self.score == other.score:
+            # First sort
+            if self.score == 0:
+                return self.turn_order > other.turn_order
+
+            if self.completed_objectives_count == other.completed_objectives_count:
+                # Longest railway
+                pass
+
+            return self.completed_objectives_count > other.completed_objectives_count
+
+        return self.score > other.score
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
     def __le__(self, other):
-        return not (self > other)
+        return not self.__gt__(other)
 
 
 class AIPlayer(Player):
@@ -215,10 +235,12 @@ class Game:
         rd.shuffle(color_list)
         rd.shuffle(order_list)
         for i in range(n_players):
-            self.players.append(Player(color_list.pop(), order_list[i]))
+            self.players.append(Player(color_list.pop(), order_list.pop()))
 
         for i in range(self.ai_count):
-            self.players.append(AIPlayer(color_list.pop(), order_list[i]))
+            self.players.append(AIPlayer(color_list.pop(), order_list.pop()))
+
+        self.players.sort()
 
         for player in self.players:
             print(player)
