@@ -1,8 +1,11 @@
 from classes import Game
-import re
 
 
 def main():
+    """
+    Main function for project
+    :return:
+    """
     print("=============== Ticket To Ride =================")
     user_input = str(input("Start game ? (y/n) \n"))
     # Setup game
