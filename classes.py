@@ -166,6 +166,14 @@ class TrainCardsDeck(Deck):
             super().__init__(train_cards)
 
 
+class VisibleTrainCardsDeck(TrainCardsDeck):
+    def __init__(self):
+        super().__init__(empty=True)
+
+    def get(self, i: int):
+        return self.cards.pop(i)
+
+
 # --------------------- #
 # --- Game Entities --- #
 # --------------------- #
@@ -247,13 +255,35 @@ class Player:
         self.objectives.merge_decks(kept_cards)
         source.merge_decks(discarded_cards)
 
-    def draw_train_card(self, source: TrainCardsDeck):
+    def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck):
         """
         A player draws 2 cards
         Todo implement function
         :param source:
         :return:
         """
+
+    def draw_from_deck(self, deck: TrainCardsDeck):
+        card = deck.draw()
+        self.cards.add_card(card)
+        print(f"You drew : {card.__str__()}")
+
+    def draw_from_visible_cards(self, visible_cards: VisibleTrainCardsDeck):
+        print("Here are the visible cards :")
+        i = 0
+        for card in visible_cards.cards:
+            i += 1
+            msg = f"#{i} {card.__str__()} \n"
+            print(msg)
+
+        choice = input(
+            "Chose which card you want to keep by entering its index :"
+        )
+
+        index = int(choice) - 1
+        chosen_card = visible_cards.get(index)
+        self.cards.add_card(chosen_card)
+        print(f"Added card : {chosen_card.__str__()}")
 
     # --- Operators
     def __str__(self):
