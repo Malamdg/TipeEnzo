@@ -1,3 +1,6 @@
+from src.Enumeration import TrainCardColorEnum, CityEnum
+import random as rd
+
 # -------------------- #
 # --- CARD CLASSES --- #
 # -------------------- #
@@ -101,3 +104,10 @@ class TrainCardsDeck(Deck):
                     train_cards.append(TrainCard(color))
             super().__init__(train_cards)
 
+
+class VisibleTrainCardsDeck(TrainCardsDeck):
+    def __init__(self):
+        super().__init__(empty=True)
+
+    def get(self, i: int):
+        return self.cards.pop(i)
