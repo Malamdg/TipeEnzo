@@ -1,5 +1,6 @@
 from enum import *
 
+
 # -------------------- #
 # --- Enumerations --- #
 # -------------------- #
@@ -48,12 +49,19 @@ class CityEnum(Enum):
     TORONTO = "Toronto"
     VANCOUVER = "Vancouver"
     WINNIPEG = "Winnipeg"
+    WASHINGTON = "Washington"
+    OMAHA = "Omaha"
+    RALEIGH = "Raleigh"
+    SAINT_LOUIS = "Saint Louis"
+    LAS_VEGAS = "Las Vegas"
+    CHARLESTON = "Charleston"
 
 
 class PlayerColorEnum(Enum):
     def _generate_next_value_(name, start, count, last_values):
         ...
         return name.lower()
+
     RED = auto()
     BLUE = auto()
     YELLOW = auto()
