@@ -1,5 +1,6 @@
 import random as rd
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck
+from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer
 from src.Enumeration import PlayerColorEnum
 
@@ -27,6 +28,7 @@ class Game:
         self.visible_train_cards_deck = TrainCardsDeck(empty=True)
         self.discarded_train_cards = TrainCardsDeck(empty=True)
         self.objective_cards_deck = ObjectiveCardsDeck(empty=False)
+        self.board = Board()
 
         # --- Players
         self.players = []
@@ -91,11 +93,22 @@ class Game:
         """
         pass
 
-    def update_turn_orders(self, last_player):
+    def update_turn_orders(self, last_player: Player):
         """
         Reorder players by setting their turn_order and re-oder self.players accordingly
 
         :param last_player:
         :return:
         """
-        pass
+
+        last_player_index = last_player.turn_order
+        delta = self.player_total - last_player_index
+        reordered_players = [i for i in range(self.player_total)]
+
+        # Reorder players
+        for player in self.players:
+            new_turn_order = (player.turn_order + delta) % self.player_total
+            player.turn_order = self.player_total if new_turn_order == 0 else new_turn_order  # ternary operator
+            reordered_players[player.turn_order - 1] = player  # turn orders are 1 based so reindex
+
+        self.players = reordered_players

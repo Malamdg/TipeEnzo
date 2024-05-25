@@ -1,4 +1,5 @@
 from src.Enumeration import PlayerColorEnum
+from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
 
@@ -112,6 +113,12 @@ class Player:
         if choice == 4:
             return "change"
 
+    def place_train_pawns(self, board: Board):
+        roads = self.get_available_roads(board)
+        # only display roads that can be occupied with their costs and available resources to do it
+        pass
+
+    # --- Base action
     def draw_from_deck(self, deck: TrainCardsDeck):
         card = deck.draw()
         self.cards.add_card(card)
@@ -133,6 +140,22 @@ class Player:
         chosen_card = visible_cards.get(index)
         self.cards.add_card(chosen_card)
         print(f"Added card : {chosen_card.__str__()}")
+        
+    def occupy_road(self, road: Road):
+        """
+        Occupy road with pawns
+
+        :param road:
+        :return:
+        """
+        road.occupy(self)
+        # Remove pawns to occupy the road
+        for _ in range(road.length):
+            self.pawns.pop()
+
+    # --- Utils
+    def get_available_roads(self, board: Board):
+        pass
 
     # --- Operators
     def __str__(self):
