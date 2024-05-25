@@ -78,11 +78,40 @@ class Player:
     def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck):
         """
         A player draws 2 cards
-        Todo implement function
+
         :param deck:
         :param visible_cards:
         :return:
         """
+        choice = input(print(""
+                             "#=================================================#\n"
+                             "# You have the choice between the following:      #\n"
+                             "# \t1 - Draw a visible card                       #\n"
+                             "# \t2 - Draw a face-down card                     #\n"
+                             "# \t3 - See your hand                             #\n"
+                             "# \t4 - Change action                             #\n"
+                             "#=================================================#"))
+
+        # Draw from visible cards
+        if choice == 1:
+            print("Be careful, if you chose a joker you wouldn't be able to draw any more card!")
+            # todo : use draw_from_visible_cards and handle second action
+
+        # Draw from deck
+        if choice == 2:
+            # todo : use draw_from_deck and handle second action
+            pass
+
+        # See hand => must return to selection screen after
+        if choice == 3:
+            # todo : show hand
+            self.draw_train_card(deck, visible_cards)
+            return
+
+        # Change action
+        if choice == 4:
+            return "change"
+
 
     def draw_from_deck(self, deck: TrainCardsDeck):
         card = deck.draw()
