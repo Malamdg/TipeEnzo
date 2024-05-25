@@ -1,6 +1,4 @@
 from src.Enumeration import CityEnum, TrainCardColorEnum
-from src.Players import Player
-
 
 class Road:
     def __init__(self, _start: CityEnum, _end: CityEnum, _length: int, _condition=None):
@@ -11,9 +9,8 @@ class Road:
         self.occupied = False
         self.occupier = None
 
-    def occupy(self, player: Player):
+    def occupy(self, player):
         if self.occupied:
-            print(f"Road already occupied by {player.color.value} Player !")
             return -1
 
         self.occupied = True
