@@ -58,7 +58,7 @@ class Game:
         for player in self.players:
             print(player)
 
-    def run(self):
+    def play(self):
         """
         Main function of the game
 
