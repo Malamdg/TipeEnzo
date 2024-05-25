@@ -58,6 +58,7 @@ class Game:
         for player in self.players:
             print(player)
 
+
     def run(self):
         """
         Main function of the game
@@ -91,7 +92,17 @@ class Game:
         :param player:
         :return:
         """
-        pass
+        choice= int(input("Choose what you want to do: \n"
+                          "1 occupy a road \n"
+                          "2 draw a train card \n"
+                          "3 draw an objective card"))
+        if choice == 1:
+            ocuppy_road(player)
+
+        elif choice == 2 :
+            player.draw_train_card(self.train_cards_deck)
+        else :
+            player.draw_objective_card(self.objective_cards_deck)
 
     def update_turn_orders(self, last_player: Player):
         """
