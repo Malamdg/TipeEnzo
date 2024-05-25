@@ -112,7 +112,6 @@ class Player:
         if choice == 4:
             return "change"
 
-
     def draw_from_deck(self, deck: TrainCardsDeck):
         card = deck.draw()
         self.cards.add_card(card)
