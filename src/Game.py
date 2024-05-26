@@ -99,10 +99,13 @@ class Game:
                           "2 draw a train card \n"
                           "3 draw an objective card"))
         if choice == 1:
-            player.place_train_pawns(self.board)
+            player.place_train_pawns(self.board, self.discarded_train_cards)
+            if player.place_train_pawns(self.board, self.discarded_train_cards) == player.change_str:
+                return player_turn(player)
+
         elif choice == 2 :
             player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck)
-            if player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck) == "change":
+            if player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck) == player.change_str:
                 return player_turn(player)
         else :
             player.draw_objective_card(self.objective_cards_deck)
