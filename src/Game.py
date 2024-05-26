@@ -66,9 +66,11 @@ class Game:
         :return:
         """
         game_finished = False
-
+        Turn_Count=0
         while not game_finished:
+            c+=1
             # Implement turn handling and stop cases
+            print(f"Turn #{Turn_Count}")
             for player in self.players:
                 self.player_turn(player)
                 # Handle stop case
@@ -100,6 +102,8 @@ class Game:
             player.place_train_pawns(self.board)
         elif choice == 2 :
             player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck)
+            if player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck) == "change":
+                return player_turn(player)
         else :
             player.draw_objective_card(self.objective_cards_deck)
 
