@@ -103,6 +103,14 @@ class TrainCardsDeck(Deck):
                 for _ in range(color.value[1]):
                     train_cards.append(TrainCard(color))
             super().__init__(train_cards)
+    def count_by_color(self):
+        color_count_dict={}
+        for card in self.cards :
+            if card.color not in color_count_dict :
+                color_count_dict[card.color] = 1
+                continue
+            color_count_dict[card.color] += 1
+        return color_count_dict
 
 
 class VisibleTrainCardsDeck(TrainCardsDeck):
