@@ -2,6 +2,7 @@ from src.Enumeration import PlayerColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
+from src.GameEntities.Score import Score_Dict
 
 
 class Player:
@@ -17,6 +18,7 @@ class Player:
 
         # --- In game - functional
         self.turn_order = _turn_order
+        self.change_str = self.change_str
         self.score = 0
         self.completed_objectives_count = 0
 
@@ -97,13 +99,13 @@ class Player:
         if choice == 1:
             print("Be careful, if you chose a joker you wouldn't be able to draw any more card! \n"
                   "Here are the visible cards :  ")
-            c=0
-            for card in visible_cards.cards :
+            c = 0
+            for card in visible_cards.cards:
                 print(f"#{c} {card}")
-                c+=1
+                c += 1
             drawn_card = input(f"Which one do you choose ?")
             self.cards.append(visible_cards.get(drawn_card))
-            if card == "joker":
+            if self.cards[-1] == "joker":
                 return
             choice = input(print("For your 2nd card\n"
                                  ""
@@ -120,13 +122,11 @@ class Player:
                     c += 1
                 drawn_card = input(f"Which one do you choose ?")
                 self.cards.append(visible_cards.get(drawn_card))
-            else :
+            else:
                 self.cards.append(deck.draw())
             return
 
-
-
-        # Draw from deck
+    # Draw from deck
         if choice == 2:
             self.cards.append(deck.draw())
             choice = input(print("For your 2nd card\n"
@@ -147,7 +147,6 @@ class Player:
             else:
                 self.cards.append(deck.draw())
 
-
         # See hand => must return to selection screen after
         if choice == 3:
             print(self.cards)
@@ -156,12 +155,27 @@ class Player:
 
         # Change action
         if choice == 4:
-            return "change"
+            return self.change_str
 
-    def place_train_pawns(self, board: Board):
-        roads = self.get_available_roads(board)
+    def place_train_pawns(self, board: Board, discarded_cards: Game.discarded_train_cards):
+        roads = self.get_affordable_roads(self.get_available_roads(board))
+        print(f"Here are the roads you can occupy: \n")
+        i = 0
+        for road in roads:
+            print(f"#{i} from {road.start} to {road.end}, cost: {road.length} {road.condition} card(s) ")
+            i += 1
         # only display roads that can be occupied with their costs and available resources to do it
-        pass
+        chosen_road_indice = int(input(f"Which one do you want to occupy ? (answer expected 0 or 1 or ... or {len(roads)}) \n"
+                                       f"\tIf you want to do another action instead type -1 \n"
+                                       f"\tIf you want to re view the roads you can occupy type -2"))
+        if chosen_road_indice == -1:
+            return self.change_str
+
+        elif chosen_road_indice == -2:
+            return place_train_pawns(board, discarded_cards)
+
+        self.pay_road_cost(roads[chosen_road_indice])
+        self.occupy_road(roads[chosen_road_indice])
 
     # --- Base action
     def draw_from_deck(self, deck: TrainCardsDeck):
@@ -198,9 +212,56 @@ class Player:
         for _ in range(road.length):
             self.pawns.pop()
 
+    def discard_cards(self, d_indices, d_deck: Game.discarded_train_cards):
+        for i in d_indices:
+            d_deck.append(self.cards.pop(i))
+
+    def pay_road_cost(self, chosen_road, d_deck: Game.discarded_train_cards):
+        print("Choose which card you want to pay with")
+        indices = self.get_usable_card_indices(chosen_road.color)
+        chosen_cards_indices = []
+        for _ in range(chosen_road.length):
+            print("Here are the cards you can use : ")
+            self.show_cards_from_hand(indices)
+            chosen_cards_indices.append(int(input(f"Which card do you wish to use ? \n"
+                                                  f"(choose only one you will choose the rest later")))
+            indices.pop(chosen_cards_indices[-1])
+        self.discard_cards(chosen_cards_indices, d_deck)
+
     # --- Utils
     def get_available_roads(self, board: Board):
-        pass
+        available_roads = []
+        for road in board.roads:
+            if not road.occupied:
+                available_roads.append(road)
+        return available_roads
+
+    def get_affordable_roads(self, available_roads):
+        hand = self.cards.count_by_color()
+        affordable_roads = []
+        for road in available_roads:
+            if road.condition is not None:
+                if hand[road.condition] >= road.length:
+                    affordable_roads.append(road)
+            else:
+                if sum(Hand.values()):
+                    affordable_roads.append(road)
+        return affordable_roads
+
+    def get_usable_card_indices(self, color_cost):
+        c = 0
+        usable_card_indices = []
+        for card in self.cards:
+            if card.color == color_cost:
+                usable_card_indices.append(c)
+            c += 1
+        return usable_card_indices
+
+    def show_cards_from_hand(self, indices):
+        c = 0
+        for i in indices:
+            print(f"#{c} {self.cards[i]}")
+            c += 1
 
     # --- Operators
     def __str__(self):
