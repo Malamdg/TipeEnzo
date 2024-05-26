@@ -95,17 +95,62 @@ class Player:
 
         # Draw from visible cards
         if choice == 1:
-            print("Be careful, if you chose a joker you wouldn't be able to draw any more card!")
-            # todo : use draw_from_visible_cards and handle second action
+            print("Be careful, if you chose a joker you wouldn't be able to draw any more card! \n"
+                  "Here are the visible cards :  ")
+            c=0
+            for card in visible_cards.cards :
+                print(f"#{c} {card}")
+                c+=1
+            drawn_card = input(f"Which one do you choose ?")
+            self.cards.append(visible_cards.get(drawn_card))
+            if card == "joker":
+                return
+            choice = input(print("For your 2nd card\n"
+                                 ""
+                                 "#=================================================#\n"
+                                 "# You have the choice between the following:      #\n"
+                                 "# \t1 - Draw a visible card                       #\n"
+                                 "# \t2 - Draw a face-down card                     #\n"
+                                 "#=================================================#"))
+            if choice == 1:
+                print("Here are the visible cards :  ")
+                c = 0
+                for card in visible_cards.cards:
+                    print(f"#{c} {card}")
+                    c += 1
+                drawn_card = input(f"Which one do you choose ?")
+                self.cards.append(visible_cards.get(drawn_card))
+            else :
+                self.cards.append(deck.draw())
+            return
+
+
 
         # Draw from deck
         if choice == 2:
-            # todo : use draw_from_deck and handle second action
-            pass
+            self.cards.append(deck.draw())
+            choice = input(print("For your 2nd card\n"
+                                 ""
+                                 "#=================================================#\n"
+                                 "# You have the choice between the following:      #\n"
+                                 "# \t1 - Draw a visible card                       #\n"
+                                 "# \t2 - Draw a face-down card                     #\n"
+                                 "#=================================================#"))
+            if choice == 1:
+                print("Here are the visible cards :  ")
+                c = 0
+                for card in visible_cards.cards:
+                    print(f"#{c} {card}")
+                    c += 1
+                drawn_card = input(f"Which one do you choose ?")
+                self.cards.append(visible_cards.get(drawn_card))
+            else:
+                self.cards.append(deck.draw())
+
 
         # See hand => must return to selection screen after
         if choice == 3:
-            # todo : show hand
+            print(self.cards)
             self.draw_train_card(deck, visible_cards)
             return
 
