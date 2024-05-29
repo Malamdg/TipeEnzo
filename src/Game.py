@@ -42,7 +42,7 @@ class Game:
         :return:
         """
         n_players = self.player_total - self.ai_count
-        color_list = [color for color in PlayerColorEnum]
+        color_list = [color for color in [PlayerColorEnum]]
         order_list = [i + 1 for i in range(self.player_total)]
         rd.shuffle(color_list)
         rd.shuffle(order_list)
@@ -66,9 +66,10 @@ class Game:
         :return:
         """
         game_finished = False
-        Turn_Count=0
+        Turn_Count = 0
+        c = 0
         while not game_finished:
-            c+=1
+            c += 1
             # Implement turn handling and stop cases
             print(f"Turn #{Turn_Count}")
             for player in self.players:

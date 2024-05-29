@@ -1,4 +1,4 @@
-from src.Enumeration import PlayerColorEnum
+from src.Enumeration import PlayerColorEnum, TrainCardColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
@@ -18,7 +18,7 @@ class Player:
 
         # --- In game - functional
         self.turn_order = _turn_order
-        self.change_str = self.change_str
+        self.change_str = "change action"
         self.score = 0
         self.completed_objectives_count = 0
 
@@ -105,7 +105,7 @@ class Player:
                 c += 1
             drawn_card = input(f"Which one do you choose ?")
             self.cards.append(visible_cards.get(drawn_card))
-            if self.cards[-1] == "joker":
+            if self.cards[-1] == TrainCardColorEnum.JOKER:
                 return
             choice = input(print("For your 2nd card\n"
                                  ""

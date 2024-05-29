@@ -99,10 +99,11 @@ class TrainCardsDeck(Deck):
             super().__init__([])
         else:
             train_cards = []
-            for color in TrainCardColorEnum:
+            for color in [TrainCardColorEnum] :
                 for _ in range(color.value[1]):
                     train_cards.append(TrainCard(color))
             super().__init__(train_cards)
+
     def count_by_color(self):
         color_count_dict={}
         for card in self.cards :
