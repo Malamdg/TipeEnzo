@@ -2,7 +2,7 @@ from src.Enumeration import PlayerColorEnum, TrainCardColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
-from src.GameEntities.Score import Score_Dict
+from src.GameEntities.Score import Score
 
 
 class Player:
@@ -19,7 +19,7 @@ class Player:
         # --- In game - functional
         self.turn_order = _turn_order
         self.change_str = "change action"
-        self.score = 0
+        self.score = Score()
         self.completed_objectives_count = 0
 
     # --- Game actions
@@ -157,7 +157,7 @@ class Player:
         if choice == 4:
             return self.change_str
 
-    def place_train_pawns(self, board: Board, discarded_cards: Game.discarded_train_cards):
+    def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
         roads = self.get_affordable_roads(self.get_available_roads(board))
         print(f"Here are the roads you can occupy: \n")
         i = 0
@@ -172,7 +172,7 @@ class Player:
             return self.change_str
 
         elif chosen_road_indice == -2:
-            return place_train_pawns(board, discarded_cards)
+            return self.place_train_pawns(board, discarded_cards)
 
         self.pay_road_cost(roads[chosen_road_indice])
         self.occupy_road(roads[chosen_road_indice])
@@ -212,11 +212,11 @@ class Player:
         for _ in range(road.length):
             self.pawns.pop()
 
-    def discard_cards(self, d_indices, d_deck: Game.discarded_train_cards):
+    def discard_cards(self, d_indices, d_deck: TrainCardsDeck):
         for i in d_indices:
             d_deck.append(self.cards.pop(i))
 
-    def pay_road_cost(self, chosen_road, d_deck: Game.discarded_train_cards):
+    def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
         indices = self.get_usable_card_indices(chosen_road.color)
         chosen_cards_indices = []
