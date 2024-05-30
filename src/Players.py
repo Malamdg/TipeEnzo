@@ -19,7 +19,7 @@ class Player:
         # --- In game - functional
         self.turn_order = _turn_order
         self.change_str = "change action"
-        self.score = Score()
+        self.score = 0
         self.completed_objectives_count = 0
 
     # --- Game actions
@@ -103,32 +103,35 @@ class Player:
             for card in visible_cards.cards:
                 print(f"#{c} {card}")
                 c += 1
-            drawn_card = input(f"Which one do you choose ?")
-            self.cards.append(visible_cards.get(drawn_card))
-            if self.cards[-1] == TrainCardColorEnum.JOKER:
+            drawn_card = int(input(f"Which one do you choose ?"))
+            self.cards.add_card(visible_cards.get(drawn_card))
+            visible_cards.add_card(deck.draw())
+            if self.cards.cards[-1] == TrainCardColorEnum.JOKER:
                 return
-            choice = input(print("For your 2nd card\n"
-                                 ""
+            choice = int(input(print("For your 2nd card\n"
+                                 "\n"
                                  "#=================================================#\n"
                                  "# You have the choice between the following:      #\n"
                                  "# \t1 - Draw a visible card                       #\n"
                                  "# \t2 - Draw a face-down card                     #\n"
-                                 "#=================================================#"))
+                                 "#=================================================#")))
             if choice == 1:
-                print("Here are the visible cards :  ")
+                print("Be careful, if you chose a joker you wouldn't be able to draw any more card! \n"
+                      "Here are the visible cards :  ")
                 c = 0
                 for card in visible_cards.cards:
                     print(f"#{c} {card}")
                     c += 1
-                drawn_card = input(f"Which one do you choose ?")
-                self.cards.append(visible_cards.get(drawn_card))
+                drawn_card = int(input(f"Which one do you choose ?"))
+                self.cards.add_card(visible_cards.get(drawn_card))
+                visible_cards.add_card(deck.draw())
             else:
-                self.cards.append(deck.draw())
+                self.cards.add_card(deck.draw())
             return
 
     # Draw from deck
         if choice == 2:
-            self.cards.append(deck.draw())
+            self.cards.add_card(deck.draw())
             choice = input(print("For your 2nd card\n"
                                  ""
                                  "#=================================================#\n"
@@ -137,15 +140,17 @@ class Player:
                                  "# \t2 - Draw a face-down card                     #\n"
                                  "#=================================================#"))
             if choice == 1:
-                print("Here are the visible cards :  ")
+                print("Be careful, if you chose a joker you wouldn't be able to draw any more card! \n"
+                      "Here are the visible cards :  ")
                 c = 0
                 for card in visible_cards.cards:
                     print(f"#{c} {card}")
                     c += 1
-                drawn_card = input(f"Which one do you choose ?")
-                self.cards.append(visible_cards.get(drawn_card))
+                drawn_card = int(input(f"Which one do you choose ?"))
+                self.cards.add_card(visible_cards.get(drawn_card))
+                visible_cards.add_card(deck.draw())
             else:
-                self.cards.append(deck.draw())
+                self.cards.add_card(deck.draw())
 
         # See hand => must return to selection screen after
         if choice == 3:
@@ -157,7 +162,7 @@ class Player:
         if choice == 4:
             return self.change_str
 
-    def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
+    def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck, score: Score):
         roads = self.get_affordable_roads(self.get_available_roads(board))
         print(f"Here are the roads you can occupy: \n")
         i = 0
@@ -165,17 +170,18 @@ class Player:
             print(f"#{i} from {road.start} to {road.end}, cost: {road.length} {road.condition} card(s) ")
             i += 1
         # only display roads that can be occupied with their costs and available resources to do it
-        chosen_road_indice = int(input(f"Which one do you want to occupy ? (answer expected 0 or 1 or ... or {len(roads)}) \n"
+        chosen_road_index = int(input(f"Which one do you want to occupy ? (answer expected 0 or 1 or ... or {len(roads)}) \n"
                                        f"\tIf you want to do another action instead type -1 \n"
                                        f"\tIf you want to re view the roads you can occupy type -2"))
-        if chosen_road_indice == -1:
+        if chosen_road_index == -1:
             return self.change_str
 
-        elif chosen_road_indice == -2:
-            return self.place_train_pawns(board, discarded_cards)
+        elif chosen_road_index == -2:
+            return self.place_train_pawns(board, discarded_cards, score)
 
-        self.pay_road_cost(roads[chosen_road_indice])
-        self.occupy_road(roads[chosen_road_indice])
+        self.pay_road_cost(roads[chosen_road_index], discarded_cards)
+        self.occupy_road(roads[chosen_road_index])
+        self.score += score.player_score_dict[roads[chosen_road_index].length]
 
     # --- Base action
     def draw_from_deck(self, deck: TrainCardsDeck):
@@ -212,21 +218,21 @@ class Player:
         for _ in range(road.length):
             self.pawns.pop()
 
-    def discard_cards(self, d_indices, d_deck: TrainCardsDeck):
-        for i in d_indices:
-            d_deck.append(self.cards.pop(i))
+    def discard_cards(self, d_indexes : list, d_deck: TrainCardsDeck):
+        for i in d_indexes:
+            d_deck.add_card(self.cards.cards.pop(i))
 
     def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
-        indices = self.get_usable_card_indices(chosen_road.color)
-        chosen_cards_indices = []
+        indexes = self.get_usable_card_indexes(chosen_road.color)
+        chosen_cards_indexes = []
         for _ in range(chosen_road.length):
             print("Here are the cards you can use : ")
-            self.show_cards_from_hand(indices)
-            chosen_cards_indices.append(int(input(f"Which card do you wish to use ? \n"
+            self.show_cards_from_hand(indexes)
+            chosen_cards_indexes.append(int(input(f"Which card do you wish to use ? \n"
                                                   f"(choose only one you will choose the rest later")))
-            indices.pop(chosen_cards_indices[-1])
-        self.discard_cards(chosen_cards_indices, d_deck)
+            indexes.pop(chosen_cards_indexes[-1])
+        self.discard_cards(chosen_cards_indexes, d_deck)
 
     # --- Utils
     def get_available_roads(self, board: Board):
@@ -236,31 +242,32 @@ class Player:
                 available_roads.append(road)
         return available_roads
 
-    def get_affordable_roads(self, available_roads):
+    def get_affordable_roads(self, available_roads: list):
         hand = self.cards.count_by_color()
         affordable_roads = []
         for road in available_roads:
             if road.condition is not None:
                 if hand[road.condition] >= road.length:
                     affordable_roads.append(road)
+
             else:
-                if sum(Hand.values()):
+                if sum(hand.values()):
                     affordable_roads.append(road)
         return affordable_roads
 
-    def get_usable_card_indices(self, color_cost):
-        c = 0
-        usable_card_indices = []
-        for card in self.cards:
+    def get_usable_card_indexes(self, color_cost: TrainCardColorEnum):
+        index = 0
+        usable_card_indexes = []
+        for card in self.cards.cards:
             if card.color == color_cost:
-                usable_card_indices.append(c)
-            c += 1
-        return usable_card_indices
+                usable_card_indexes.append(index)
+            index += 1
+        return usable_card_indexes
 
-    def show_cards_from_hand(self, indices):
+    def show_cards_from_hand(self, indexes):
         c = 0
-        for i in indices:
-            print(f"#{c} {self.cards[i]}")
+        for index in indexes:
+            print(f"#{c} {self.cards.cards[index]}")
             c += 1
 
     # --- Operators
