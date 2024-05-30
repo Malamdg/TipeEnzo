@@ -104,6 +104,8 @@ class TrainCardsDeck(Deck):
                     train_cards.append(TrainCard(color))
             super().__init__(train_cards)
 
+
+
     def count_by_color(self):
         color_count_dict={}
         for card in self.cards :
@@ -120,3 +122,21 @@ class VisibleTrainCardsDeck(TrainCardsDeck):
 
     def get(self, i: int):
         return self.cards.pop(i)
+
+    def discard_if_needed(self, discarded_deck : TrainCardsDeck, deck: TrainCardsDeck):
+        number_of_jokers = 0
+        for card in self.cards :
+            if card == TrainCardColorEnum.JOKER:
+                number_of_jokers+=1
+                if number_of_jokers == 3:
+                    break
+        if number_of_jokers == 3:
+            for Card in self.cards:
+                discarded_deck.add_card(Card)
+            for i in range(5):
+                self.add_card(deck.draw())
+
+
+
+
+
