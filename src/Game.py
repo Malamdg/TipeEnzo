@@ -1,5 +1,5 @@
 import random as rd
-from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck
+from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer
 from src.Enumeration import PlayerColorEnum
@@ -26,7 +26,7 @@ class Game:
 
         # --- Game resources
         self.train_cards_deck = TrainCardsDeck(empty=False)
-        self.visible_train_cards_deck = TrainCardsDeck(empty=True)
+        self.visible_train_cards_deck = VisibleTrainCardsDeck(empty=True)
         self.discarded_train_cards = TrainCardsDeck(empty=True)
         self.objective_cards_deck = ObjectiveCardsDeck(empty=False)
         self.board = Board()
@@ -101,7 +101,7 @@ class Game:
                              "# \t3 - Occupy a road                             #\n"
                              "#=================================================#"))
         if choice == 1:
-            c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck)
+            c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck, self.discarded_train_cards)
             if c == player.change_str:
                 return self.player_turn(player)
         elif choice == 2:
