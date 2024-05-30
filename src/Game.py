@@ -3,7 +3,6 @@ from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTr
 from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer
 from src.Enumeration import PlayerColorEnum
-from src.GameEntities.Score import Score
 
 
 # --- Utils
@@ -26,7 +25,7 @@ class Game:
 
         # --- Game resources
         self.train_cards_deck = TrainCardsDeck(empty=False)
-        self.visible_train_cards_deck = VisibleTrainCardsDeck(empty=True)
+        self.visible_train_cards_deck = VisibleTrainCardsDeck()
         self.discarded_train_cards = TrainCardsDeck(empty=True)
         self.objective_cards_deck = ObjectiveCardsDeck(empty=False)
         self.board = Board()
@@ -109,10 +108,9 @@ class Game:
             if c == player.change_str:
                 return self.player_turn(player)
         elif choice == 3:
-            c = player.place_train_pawns(Board, self.discarded_train_cards, Score)
+            c = player.place_train_pawns(self.board, self.discarded_train_cards)
             if c == player.change_str:
                 return self.player_turn(player)
-
 
     def update_turn_orders(self, last_player: Player):
         """
