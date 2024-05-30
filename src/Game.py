@@ -96,7 +96,7 @@ class Game:
                              ""
                              "#=================================================#\n"
                              "# You have the choice between the following:      #\n"
-                             "# \t1 - Draw a train card                               #\n"
+                             "# \t1 - Draw a train card                         #\n"
                              "# \t2 - Draw an Objective card                    #\n"
                              "# \t3 - Occupy a road                             #\n"
                              "#=================================================#"))
