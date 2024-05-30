@@ -3,6 +3,7 @@ from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck
 from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer
 from src.Enumeration import PlayerColorEnum
+from src.GameEntities.Score import Score
 
 
 # --- Utils
@@ -91,7 +92,27 @@ class Game:
         :param player:
         :return:
         """
-        pass
+        choice = input(print("For your 2nd card\n"
+                             ""
+                             "#=================================================#\n"
+                             "# You have the choice between the following:      #\n"
+                             "# \t1 - Draw a train card                               #\n"
+                             "# \t2 - Draw an Objective card                    #\n"
+                             "# \t3 - Occupy a road                             #\n"
+                             "#=================================================#"))
+        if choice == 1:
+            c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck)
+            if c == player.change_str:
+                return self.player_turn(player)
+        elif choice == 2:
+            c = player.draw_objective_card(self.objective_cards_deck)
+            if c == player.change_str:
+                return self.player_turn(player)
+        elif choice == 3:
+            c = player.place_train_pawns(Board, self.discarded_train_cards, Score)
+            if c == player.change_str:
+                return self.player_turn(player)
+
 
     def update_turn_orders(self, last_player: Player):
         """
