@@ -42,6 +42,10 @@ class Player:
         drawn_cards = [source.draw() for _ in range(3)]
 
         # --- Player Interaction
+        response = input(f"If you don't want to draw an objective card and wish to one of the previous possible \n"
+                         f"actions type : change action ")
+        if response == self.change_str:
+            return self.change_str
 
         # Display cards
         print("Here are your drawn objectives: \n")
@@ -54,7 +58,8 @@ class Player:
         # Get which card to keep
         response = str(
             input(
-                "Chose which card(s) you want to keep ? (at least one, separate choices with an empty space):"
+                "Chose which card(s) you want to keep ? (at least one, separate choices with an empty space)\n"
+                ":"
             )
         )
 
@@ -78,13 +83,14 @@ class Player:
         self.objectives.merge_decks(kept_cards)
         source.merge_decks(discarded_cards)
 
-    def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck):
+    def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck, discarded_cards: TrainCardsDeck):
         """
         A player draws 2 cards
 
-        :param deck:
-        :param visible_cards:
-        :return:
+        :param deck: represent the deck from which we draw the card that aren't visible from
+        :param visible_cards: represent the cards that are visible to the player
+        :param discarded_cards: represent the deck in which we discard the cards
+        :return:None if the player do the action to the end or player.change_str if the player want to change what action he does
         """
         choice = input(print(""
                              "#=================================================#\n"
@@ -106,6 +112,7 @@ class Player:
             drawn_card = int(input(f"Which one do you choose ?"))
             self.cards.add_card(visible_cards.get(drawn_card))
             visible_cards.add_card(deck.draw())
+            visible_cards.discard_if_needed(discarded_cards,deck)
             if self.cards.cards[-1] == TrainCardColorEnum.JOKER:
                 return
             choice = int(input(print("For your 2nd card\n"
@@ -155,7 +162,7 @@ class Player:
         # See hand => must return to selection screen after
         if choice == 3:
             print(self.cards)
-            self.draw_train_card(deck, visible_cards)
+            self.draw_train_card(deck, visible_cards,discarded_cards)
             return
 
         # Change action
@@ -218,11 +225,11 @@ class Player:
         for _ in range(road.length):
             self.pawns.pop()
 
-    def discard_cards(self, d_indexes : list, d_deck: TrainCardsDeck):
+    def discard_cards(self, d_indexes : list, discard_deck: TrainCardsDeck):
         for i in d_indexes:
-            d_deck.add_card(self.cards.cards.pop(i))
+            discard_deck.add_card(self.cards.cards.pop(i))
 
-    def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
+    def pay_road_cost(self, chosen_road, discard_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
         indexes = self.get_usable_card_indexes(chosen_road.color)
         chosen_cards_indexes = []
@@ -232,7 +239,7 @@ class Player:
             chosen_cards_indexes.append(int(input(f"Which card do you wish to use ? \n"
                                                   f"(choose only one you will choose the rest later")))
             indexes.pop(chosen_cards_indexes[-1])
-        self.discard_cards(chosen_cards_indexes, d_deck)
+        self.discard_cards(chosen_cards_indexes, discard_deck)
 
     # --- Utils
     def get_available_roads(self, board: Board):
@@ -249,10 +256,10 @@ class Player:
             if road.condition is not None:
                 if hand[road.condition] >= road.length:
                     affordable_roads.append(road)
-
-            else:
-                if sum(hand.values()):
-                    affordable_roads.append(road)
+                continue
+            if sum(hand.values()) >= road.length:
+                affordable_roads.append(road)
+                continue
         return affordable_roads
 
     def get_usable_card_indexes(self, color_cost: TrainCardColorEnum):
