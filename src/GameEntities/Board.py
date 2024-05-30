@@ -1,4 +1,4 @@
-from src.Enumeration import CityEnum, TrainCardColorEnum
+from src.Enumeration import CityEnum, TrainCardColorEnum, PlayerColorEnum
 
 
 class Road:
@@ -120,3 +120,15 @@ class Board:
             Road(CityEnum.HOUSTON, CityEnum.NEW_ORLEANS, 2),
             Road(CityEnum.NEW_ORLEANS, CityEnum.MIAMI, 6, TrainCardColorEnum.RED),
         ]
+
+    def get_roads_by_player(self):
+        # Instantiate dict
+        roads_by_player = {
+            color: [] for color in PlayerColorEnum
+        }
+
+        for road in self.roads:
+            if road.occupied:
+                roads_by_player[road.occupier.color].append(Road)
+
+        return roads_by_player
