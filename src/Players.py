@@ -1,6 +1,6 @@
 from src.Enumeration import PlayerColorEnum, TrainCardColorEnum
 from src.GameEntities.Board import Road, Board
-from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
+from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck, TrainCard
 from src.GameEntities.Pawn import Pawn
 from src.GameEntities.Score import Score
 
@@ -65,11 +65,12 @@ class Player:
         # --- Final treatment
 
         # function to split drawn_cards in each category
-        def split_cards(index, el):
+        def split_cards(index: int, el: TrainCard):
             if index in indexes:
                 kept_cards.add_card(el)
             else:
                 discarded_cards.add_card(el)
+            return el
 
         # Apply split function on drawn_cards
         map(split_cards, drawn_cards)
@@ -79,9 +80,9 @@ class Player:
         source.merge_decks(discarded_cards)
 
     def draw_train_card(
-            self, 
-            deck: TrainCardsDeck, 
-            visible_cards: VisibleTrainCardsDeck, 
+            self,
+            deck: TrainCardsDeck,
+            visible_cards: VisibleTrainCardsDeck,
             discarded_cards: TrainCardsDeck
     ):
         """
@@ -92,26 +93,33 @@ class Player:
         :param visible_cards:
         :return:
         """
-        choice = input(print(""
-                             "#=================================================#\n"
-                             "# You have the choice between the following:      #\n"
-                             "# \t1 - Draw a visible card                       #\n"
-                             "# \t2 - Draw a face-down card                     #\n"
-                             "# \t3 - See your hand                             #\n"
-                             "# \t4 - Change action                             #\n"
-                             "#=================================================#"))
+        choice = int(
+            input(
+                "#=================================================#\n"
+                "# You have the choice between the following:      #\n"
+                "# \t1 - Draw a visible card                       #\n"
+                "# \t2 - Draw a face-down card                     #\n"
+                "# \t3 - See your hand                             #\n"
+                "# \t4 - Change action                             #\n"
+                "#=================================================#\n"
+            )
+        )
 
         # Draw from visible cards
         if choice == 1:
             self.draw_from_visible_cards(visible_cards, deck, discarded_cards, True)
             if self.cards.cards[-1] == TrainCardColorEnum.JOKER:
                 return
-            choice = int(input(print("For your 2nd card\n\n"
-                                     "#=================================================#\n"
-                                     "# You have the choice between the following:      #\n"
-                                     "# \t1 - Draw a visible card                       #\n"
-                                     "# \t2 - Draw a face-down card                     #\n"
-                                     "#=================================================#")))
+            choice = int(
+                input(
+                    "For your 2nd card\n\n"
+                    "#=================================================#\n"
+                    "# You have the choice between the following:      #\n"
+                    "# \t1 - Draw a visible card                       #\n"
+                    "# \t2 - Draw a face-down card                     #\n"
+                    "#=================================================#\n"
+                )
+            )
             if choice == 1:
                 self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
             else:
@@ -121,13 +129,16 @@ class Player:
         # Draw from deck
         if choice == 2:
             self.cards.add_card(deck.draw())
-            choice = input(print("For your 2nd card\n"
-                                 ""
-                                 "#=================================================#\n"
-                                 "# You have the choice between the following:      #\n"
-                                 "# \t1 - Draw a visible card                       #\n"
-                                 "# \t2 - Draw a face-down card                     #\n"
-                                 "#=================================================#"))
+            choice = int(
+                input(
+                    "For your 2nd card\n"
+                    "#=================================================#\n"
+                    "# You have the choice between the following:      #\n"
+                    "# \t1 - Draw a visible card                       #\n"
+                    "# \t2 - Draw a face-down card                     #\n"
+                    "#=================================================#\n"
+                )
+            )
             if choice == 1:
                 self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
             else:
@@ -160,7 +171,7 @@ class Player:
 
         elif chosen_road_index == -2:
             return self.place_train_pawns(board, discarded_cards)
-        
+
         chosen_road = roads[chosen_road_index]
         self.pay_road_cost(chosen_road, discarded_cards)
         self.occupy_road(chosen_road)
@@ -189,8 +200,7 @@ class Player:
         i = 0
         for card in visible_cards.cards:
             i += 1
-            msg = f"#{i} {card.__str__()} \n"
-            print(msg)
+            print(f"#{i} {card.__str__()} \n")
 
         choice = input(
             "Chose which card you want to keep by entering its index :"

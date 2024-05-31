@@ -30,6 +30,9 @@ class Game:
         self.objective_cards_deck = ObjectiveCardsDeck(empty=False)
         self.board = Board()
 
+        # --- Init visible cards
+        self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
+
         # --- Players
         self.players = []
 
@@ -91,14 +94,14 @@ class Game:
         :param player:
         :return:
         """
-        choice = input(print("For your 2nd card\n"
-                             ""
-                             "#=================================================#\n"
-                             "# You have the choice between the following:      #\n"
-                             "# \t1 - Draw a train card                         #\n"
-                             "# \t2 - Draw an Objective card                    #\n"
-                             "# \t3 - Occupy a road                             #\n"
-                             "#=================================================#"))
+        choice = int(input(
+            "#=================================================#\n"
+            "# You have the choice between the following:      #\n"
+            "# \t1 - Draw a train card                         #\n"
+            "# \t2 - Draw an Objective card                    #\n"
+            "# \t3 - Occupy a road                             #\n"
+            "#=================================================#\n"
+        ))
         if choice == 1:
             c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck, self.discarded_train_cards)
             if c == player.change_str:
