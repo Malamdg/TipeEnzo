@@ -57,6 +57,7 @@ class Game:
         # Display starting player order
         for player in self.players:
             print(player)
+            player.draw_objective_card(self.objective_cards_deck, True)
 
     def play(self):
         """
@@ -65,7 +66,8 @@ class Game:
         :return:
         """
         game_finished = False
-
+        rd.shuffle(self.train_cards_deck.cards)
+        self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
         while not game_finished:
             # Implement turn handling and stop cases
             for player in self.players:
@@ -91,26 +93,34 @@ class Game:
         :param player:
         :return:
         """
-        choice = input(print("For your 2nd card\n"
-                             ""
+        choice = int(input(print(""
                              "#=================================================#\n"
                              "# You have the choice between the following:      #\n"
                              "# \t1 - Draw a train card                         #\n"
                              "# \t2 - Draw an Objective card                    #\n"
                              "# \t3 - Occupy a road                             #\n"
-                             "#=================================================#"))
+                             "# \t4 - View your Train cards                     #\n"
+                             "# \t5 - View your Objective cards                 #\n"               
+                             "#=================================================#")))
         if choice == 1:
             c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck, self.discarded_train_cards)
             if c == player.change_str:
-                return self.player_turn(player)
+                self.player_turn(player)
         elif choice == 2:
-            c = player.draw_objective_card(self.objective_cards_deck)
+            c = player.draw_objective_card(self.objective_cards_deck, False)
             if c == player.change_str:
-                return self.player_turn(player)
+                self.player_turn(player)
         elif choice == 3:
             c = player.place_train_pawns(self.board, self.discarded_train_cards)
             if c == player.change_str:
-                return self.player_turn(player)
+                self.player_turn(player)
+        elif choice == 4:
+            player.show_cards_from_hand("all")
+            return self.player_turn(player)
+
+        elif choice == 5:
+            player.show_objective_cards()
+            return self.player_turn(player)
 
     def update_turn_orders(self, last_player: Player):
         """
