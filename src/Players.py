@@ -65,7 +65,6 @@ class Player:
                     source.add_card(card)
                 return self.draw_objective_card(source, True)
 
-
         else:
             response = str(
                 input(
