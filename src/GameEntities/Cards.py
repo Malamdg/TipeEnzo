@@ -29,7 +29,7 @@ class ObjectiveCard(Card):
         self.points = points
 
     def __str__(self):
-        return f"From {self.start} to {self.destination} | {self.points}pts"
+        return f"From {self.start.value.capitalize()} to {self.destination.value.capitalize()} | {self.points}pts"
 
 
 class Deck:
