@@ -24,7 +24,7 @@ class Player:
 
     # --- Game actions
 
-    def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn: bool):
+    def draw_objective_card(self, source: ObjectiveCardsDeck):
         """
         A player draws 3 objective cards and must keep at least 1
         :param source:
@@ -52,35 +52,18 @@ class Player:
             print(msg)
 
         # Get which card to keep
-        if first_turn:
-            response = str(
-                input(
-                    "Chose which card(s) you want to keep ? (at least two, separate choices with an empty space):"
-                )
+        response = str(
+            input(
+                "Chose which card(s) you want to keep ? (at least one, separate choices with an empty space):"
             )
-            indexes = [int(el.strip()) - 1 for el in response.split(" ")]
-            if len(indexes) < 2:
-                print(f"You must keep at least two objectives")
-                for card in drawn_cards:
-                    source.add_card(card)
-                return self.draw_objective_card(source, True)
-
-        else:
-            response = str(
-                input(
-                    "Chose which card(s) you want to keep ? (at least one, separate choices with an empty space):"
-                )
-            )
+        )
 
         # Intended response format: "1 2 3"
         # Will give: [0,1,2] the indexes in the card list
         indexes = [int(el.strip()) - 1 for el in response.split(" ")]
-        if len(indexes) == 0:
-            print(f"Please choose at least one of the card here ")
-            for card in drawn_cards:
-                source.add_card(card)
-            return self.draw_objective_card(source, False)
+
         # --- Final treatment
+
         # function to split drawn_cards in each category
         def split_cards(index, el):
             if index in indexes:
@@ -109,20 +92,21 @@ class Player:
         :param visible_cards:
         :return:
         """
-        self.show_visible_card(visible_cards)
-        choice = int(input(print(""
-                             "#=================================================#\n"
-                             "# You have the choice between the following:      #\n"
-                             "# \t1 - Draw a visible card                       #\n"
-                             "# \t2 - Draw a face-down card                     #\n"
-                             "# \t3 - See your hand                             #\n"
-                             "# \t4 - Change action                             #\n"
-                             "#=================================================#")))
+        choice = int(
+            input(
+                "#=================================================#\n"
+                "# You have the choice between the following:      #\n"
+                "# \t1 - Draw a visible card                       #\n"
+                "# \t2 - Draw a face-down card                     #\n"
+                "# \t3 - See your hand                             #\n"
+                "# \t4 - Change action                             #\n"
+                "#=================================================#\n"
+            )
+        )
 
         # Draw from visible cards
         if choice == 1:
             self.draw_from_visible_cards(visible_cards, deck, discarded_cards, True)
-            visible_cards.refill_cards(discarded_cards, deck)
             if self.cards.cards[-1] == TrainCardColorEnum.JOKER:
                 return
             choice = int(input(print("For your 2nd card\n\n"
@@ -133,7 +117,6 @@ class Player:
                                      "#=================================================#")))
             if choice == 1:
                 self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
-                visible_cards.refill_cards(discarded_cards, deck)
             else:
                 self.draw_from_deck(deck)
             return
@@ -150,8 +133,6 @@ class Player:
                                  "#=================================================#"))
             if choice == 1:
                 self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
-                visible_cards.refill_cards(discarded_cards, deck)
-
             else:
                 self.draw_from_deck(deck)
 
@@ -182,7 +163,7 @@ class Player:
 
         elif chosen_road_index == -2:
             return self.place_train_pawns(board, discarded_cards)
-        
+
         chosen_road = roads[chosen_road_index]
         self.pay_road_cost(chosen_road, discarded_cards)
         self.occupy_road(chosen_road)
@@ -218,9 +199,10 @@ class Player:
             "Chose which card you want to keep by entering its index :"
         )
 
-        if not first_draw and visible_cards.cards[i].color == TrainCardColorEnum.JOKER.value[0]:
+        if not first_draw and visible_cards.cards[i].color == TrainCardColorEnum.JOKER:
             print("You can't chose this card on your second draw!")
             return self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
+
         index = int(choice) - 1
         chosen_card = visible_cards.get(index)
         self.cards.add_card(chosen_card)
@@ -269,7 +251,7 @@ class Player:
         affordable_roads = []
         for road in available_roads:
             if road.condition is not None:
-                if hand[road.condition.value[1]] >= road.length:
+                if hand[road.condition] >= road.length:
                     affordable_roads.append(road)
 
             else:
@@ -288,31 +270,11 @@ class Player:
 
     def show_cards_from_hand(self, indexes):
         c = 0
-        if indexes == "all":
-            indexes = [i for i in range(len(self.cards.cards))]
-            if indexes == []:
-                print(f"You don't have any cards now")
-                return
         for index in indexes:
             print(f"#{c} {self.cards.cards[index]}")
             c += 1
 
-    def show_objective_cards(self):
-        c = 0
-        print("Here are your objective cards")
-        for card in self.objectives.cards:
-            c += 1
-            print(f"\t#{c} , {card}")
-
-    def show_visible_card(self, visible_cards: TrainCardsDeck):
-        index = 0
-        print("Here are the visible cards")
-        for card in visible_cards.cards:
-            index += 1
-            print(f"#\t {index} , {card.__str__()}")
-
     # --- Operators
-
     def __str__(self):
         return f"Player #{self.turn_order} ({self.str_type}) color : {self.color.value}"
 
