@@ -37,8 +37,10 @@ class Deck:
         self.cards = cards
 
     def shuffle(self):
+        cards = self.cards
         # shuffle algorithm
-        rd.shuffle(self.cards)
+        rd.shuffle(cards)
+        self.cards = cards
 
     def draw(self):
         if len(self.cards) == 0:
@@ -108,10 +110,10 @@ class TrainCardsDeck(Deck):
     def count_by_color(self):
         color_count_dict = {}
         for card in self.cards:
-            if card.color not in color_count_dict:
-                color_count_dict[card.color] = 1
+            if card not in color_count_dict:
+                color_count_dict[card] = 1
                 continue
-            color_count_dict[card.color] += 1
+            color_count_dict[card] += 1
         return color_count_dict
 
 
@@ -136,6 +138,6 @@ class VisibleTrainCardsDeck(TrainCardsDeck):
                 discarded_deck.shuffle()
                 deck.merge_decks(discarded_deck)
         color_dict = self.count_by_color()
-        if color_dict[TrainCardColorEnum.JOKER] == 3:
+        if TrainCardColorEnum.JOKER.value[0] in color_dict.keys() and color_dict[TrainCardColorEnum.JOKER.value[0]] == 3:
             discarded_deck.merge_decks(self)
             self.refill_cards(discarded_deck, deck)

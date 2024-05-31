@@ -57,7 +57,7 @@ class Game:
         # Display starting player order
         for player in self.players:
             print(player)
-            player.draw_objective_card(self.objective_cards_deck, True)
+
 
     def play(self):
         """
@@ -65,6 +65,9 @@ class Game:
 
         :return:
         """
+        for player in self.players:
+            print(player)
+            player.draw_objective_card(self.objective_cards_deck, True)
         game_finished = False
         rd.shuffle(self.train_cards_deck.cards)
         self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
