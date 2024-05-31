@@ -65,7 +65,6 @@ class Game:
         :return:
         """
         for player in self.players:
-            print(player)
             player.draw_objective_card(self.objective_cards_deck, True)
 
         game_finished = False
