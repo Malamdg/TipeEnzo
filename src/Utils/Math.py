@@ -2,14 +2,6 @@ from src.GameEntities.Board import Board, Road
 from src.Players import Player
 
 
-class Algorithm:
-    @staticmethod
-    def player_longest_road(player: Player, board: Board):
-        player_roads = board.get_roads_by_player()[player.color]
-        graph = UndirectedGraph()
-        graph.init_from_road_list(player_roads)
-
-
 class Graph:
     def __init__(self):
         self.vertices = {}
@@ -24,6 +16,40 @@ class Graph:
         self.add_vertice(end)
         self.vertices[start].add(end)
         self.edges[(start, end)] = weight
+
+    def topological_sort_util(self, v, visited, stack):
+        visited.add(v)
+        for neighbor in self.vertices[v]:
+            if neighbor not in visited:
+                self.topological_sort_util(neighbor, visited, stack)
+        stack.append(v)
+
+    def topological_sort(self):
+        visited = set()
+        stack = []
+
+        for vertex in list(self.vertices):
+            if vertex not in visited:
+                self.topological_sort_util(vertex, visited, stack)
+
+        return stack[::-1]  # Return in reverse order
+
+    def find_longest_path(self, start):
+        # Step 1: Topological Sort
+        topological_order = self.topological_sort()
+
+        # Step 2: Initialize distances
+        dist = {vertex: float('-inf') for vertex in self.vertices}
+        dist[start] = 0
+
+        # Step 3: Relax edges according to topological order
+        for vertex in topological_order:
+            if dist[vertex] != float('-inf'):
+                for neighbor in self.vertices[vertex]:
+                    if dist[neighbor] < dist[vertex] + self.edges[(vertex, neighbor)]:
+                        dist[neighbor] = dist[vertex] + self.edges[(vertex, neighbor)]
+
+        return dist
 
 
 class UndirectedGraph(Graph):
@@ -40,3 +66,18 @@ class UndirectedGraph(Graph):
 
     def init_from_board(self, board: Board):
         self.init_from_road_list(board.roads)
+
+
+class Algorithm:
+    @staticmethod
+    def player_longest_road(player: Player, board: Board):
+        player_roads = board.get_roads_by_player()[player.color]
+        graph = UndirectedGraph()
+        graph.init_from_road_list(player_roads)
+
+        longest_path_length = 0
+        for vertice in graph.vertices:
+            dist = graph.find_longest_path(vertice)
+            longest_path_length = max(longest_path_length, max(dist.values()))
+
+        return longest_path_length

@@ -129,6 +129,6 @@ class Board:
 
         for road in self.roads:
             if road.occupied:
-                roads_by_player[road.occupier.color].append(Road)
+                roads_by_player[road.occupier.color].append(road)
 
         return roads_by_player
