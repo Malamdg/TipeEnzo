@@ -33,7 +33,7 @@ class ObjectiveCard(Card):
 
 
 class Deck:
-    def __init__(self, cards: list[Card]):
+    def __init__(self, cards: list):
         self.cards = cards
 
     def shuffle(self):

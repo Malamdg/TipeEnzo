@@ -231,9 +231,10 @@ class Player:
             msg = f"#{i} {card.__str__()} \n"
             print(msg)
 
-        choice = int(input(
-            "Chose which card you want to keep by entering its index :"
-        )
+        choice = int(
+            input(
+                "Chose which card you want to keep by entering its index :"
+            )
         )
         if not first_draw and visible_cards.cards[choice-1].color.value[0] == TrainCardColorEnum.JOKER.value[0]:
             print("You can't chose this card on your second draw!")
