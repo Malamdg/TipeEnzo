@@ -360,7 +360,7 @@ class Player:
     def get_usable_card_indexes(self, color_cost: Road):
         index = 0
         usable_card_indexes = []
-        if color_cost.condition == None:
+        if color_cost.condition is None:
             usable_card_indexes = [i for i in range(len(self.cards.cards))]
         else:
             for card in self.cards.cards:
@@ -373,7 +373,7 @@ class Player:
         c = 0
         if indexes == "all":
             indexes = [i for i in range(len(self.cards.cards))]
-            if indexes == []:
+            if len(indexes) == 0:
                 print(f"You don't have any cards now")
                 return
         for index in indexes:

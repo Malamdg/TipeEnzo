@@ -74,7 +74,7 @@ class Game:
         while not game_finished:
             # Implement turn handling and stop cases
             for player in self.players:
-                self.player_turn(player)
+                player.player_turn()
                 # Handle stop case
                 if trigger_last_turn(player):
                     # Set game_finished to true
@@ -84,7 +84,7 @@ class Game:
 
                     # Play last turn
                     for p in self.players:
-                        self.player_turn(p)
+                        player.player_turn()
 
                     # End of the game
                     break

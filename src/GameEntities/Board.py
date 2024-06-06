@@ -1,5 +1,6 @@
 from src.Enumeration import CityEnum, TrainCardColorEnum
 
+
 class Road:
     def __init__(self, _start: CityEnum, _end: CityEnum, _length: int, _condition=None):
         self.start = _start

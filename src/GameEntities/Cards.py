@@ -138,6 +138,7 @@ class VisibleTrainCardsDeck(TrainCardsDeck):
                 discarded_deck.shuffle()
                 deck.merge_decks(discarded_deck)
         color_dict = self.count_by_color()
-        if TrainCardColorEnum.JOKER.value[0] in color_dict.keys() and color_dict[TrainCardColorEnum.JOKER.value[0]] == 3:
+        if (TrainCardColorEnum.JOKER.value[0] in color_dict.keys()
+                and color_dict[TrainCardColorEnum.JOKER.value[0]] == 3):
             discarded_deck.merge_decks(self)
             self.refill_cards(discarded_deck, deck)
