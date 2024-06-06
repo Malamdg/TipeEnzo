@@ -100,7 +100,7 @@ def test_longest_road():
 
     # Calculate and visualize longest road for each player
     for player in active_players:
-        longest_road_length = Algorithm.player_longest_road(player, board)
+        longest_road_length = Algorithm.longest_road(player)
         print(f"Longest road for Player {player.color.name} : {longest_road_length}")
         plot_board(board, player)
 

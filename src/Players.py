@@ -2,6 +2,7 @@ from src.Enumeration import PlayerColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
+from src.Utils.Math import Algorithm
 
 
 class Player:
@@ -19,6 +20,7 @@ class Player:
         self.turn_order = _turn_order
         self.score = 0
         self.completed_objectives_count = 0
+        self.roads = []
 
     # --- Game actions
 
@@ -168,8 +170,7 @@ class Player:
                 return self.turn_order < other.turn_order
 
             if self.completed_objectives_count == other.completed_objectives_count:
-                # Longest railway
-                pass
+                return Algorithm.longest_road(self) < Algorithm.longest_road(other)
 
             return self.completed_objectives_count < other.completed_objectives_count
 
@@ -182,8 +183,7 @@ class Player:
                 return self.turn_order > other.turn_order
 
             if self.completed_objectives_count == other.completed_objectives_count:
-                # Longest railway
-                pass
+                return Algorithm.longest_road(self) > Algorithm.longest_road(other)
 
             return self.completed_objectives_count > other.completed_objectives_count
 

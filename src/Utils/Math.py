@@ -1,5 +1,4 @@
 from src.GameEntities.Board import Board, Road
-from src.Players import Player
 
 
 class Graph:
@@ -70,8 +69,8 @@ class UndirectedGraph(Graph):
 
 class Algorithm:
     @staticmethod
-    def player_longest_road(player: Player, board: Board):
-        player_roads = board.get_roads_by_player()[player.color]
+    def longest_road(player):
+        player_roads = player.roads
         graph = UndirectedGraph()
         graph.init_from_road_list(player_roads)
 

@@ -16,6 +16,7 @@ class Road:
 
         self.occupied = True
         self.occupier = player
+        player.roads.append(self)
         return 0
 
 
