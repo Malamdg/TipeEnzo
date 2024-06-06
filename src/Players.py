@@ -24,7 +24,7 @@ class Player:
 
     # --- Game actions
 
-    def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn: bool):
+    def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
         """
         A player draws 3 objective cards and must keep at least 1
         :param source:
@@ -177,6 +177,9 @@ class Player:
             return self.change_str
 
     def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
+        if len(self.cards.cards) == 0:
+            print("You don't have any cards in your hand now")
+            return self.change_str
         roads = self.get_affordable_roads(self.get_available_roads(board))
         print(f"Here are the roads you can occupy: \n")
         i = 0
@@ -228,18 +231,18 @@ class Player:
             msg = f"#{i} {card.__str__()} \n"
             print(msg)
 
-        choice = input(
+        choice = int(input(
             "Chose which card you want to keep by entering its index :"
         )
-
-        if not first_draw and visible_cards.cards[i].color == TrainCardColorEnum.JOKER.value[0]:
+        )
+        if not first_draw and visible_cards.cards[choice-1].color.value[0] == TrainCardColorEnum.JOKER.value[0]:
             print("You can't chose this card on your second draw!")
             return self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
         index = int(choice) - 1
         chosen_card = visible_cards.get(index)
         self.cards.add_card(chosen_card)
         print(f"Added card : {chosen_card.__str__()}")
-        visible_cards.refill_cards(deck, discarded_cards)
+        visible_cards.refill_cards(discarded_cards, deck)
 
     def occupy_road(self, road: Road):
         """
@@ -259,7 +262,7 @@ class Player:
 
     def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
-        indexes = self.get_usable_card_indexes(chosen_road.color)
+        indexes = self.get_usable_card_indexes(chosen_road)
         chosen_cards_indexes = []
         for _ in range(chosen_road.length):
             print("Here are the cards you can use : ")
@@ -283,7 +286,7 @@ class Player:
         affordable_roads = []
         for road in available_roads:
             if road.condition is not None:
-                if hand[road.condition.value[1]] >= road.length:
+                if road.condition.value[0] in hand.keys() and hand[road.condition.value[0]] >= road.length:
                     affordable_roads.append(road)
 
             else:
@@ -291,13 +294,16 @@ class Player:
                     affordable_roads.append(road)
         return affordable_roads
 
-    def get_usable_card_indexes(self, color_cost: TrainCardColorEnum):
+    def get_usable_card_indexes(self, color_cost: Road):
         index = 0
         usable_card_indexes = []
-        for card in self.cards.cards:
-            if card.color == color_cost:
-                usable_card_indexes.append(index)
-            index += 1
+        if color_cost.condition == None:
+            usable_card_indexes = [i for i in range(len(self.cards.cards))]
+        else:
+            for card in self.cards.cards:
+                if card.color == color_cost.condition:
+                    usable_card_indexes.append(index)
+                index += 1
         return usable_card_indexes
 
     def show_cards_from_hand(self, indexes):

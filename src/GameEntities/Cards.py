@@ -33,7 +33,7 @@ class ObjectiveCard(Card):
 
 
 class Deck:
-    def __init__(self, cards: list):
+    def __init__(self, cards: list[Card]):
         self.cards = cards
 
     def shuffle(self):
@@ -111,9 +111,9 @@ class TrainCardsDeck(Deck):
         color_count_dict = {}
         for card in self.cards:
             if card not in color_count_dict:
-                color_count_dict[card] = 1
+                color_count_dict[card.color.value[0]] = 1
                 continue
-            color_count_dict[card] += 1
+            color_count_dict[card.color.value[0]] += 1
         return color_count_dict
 
 

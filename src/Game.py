@@ -53,9 +53,12 @@ class Game:
             self.players.append(AIPlayer(color_list.pop(), order_list.pop()))
 
         self.players.sort()
-
+        rd.shuffle(self.train_cards_deck.cards)
+        self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
         # Display starting player order
         for player in self.players:
+            for _ in range(4):
+                player.cards.add_card(self.train_cards_deck.draw())
             print(player)
 
     def play(self):
@@ -68,9 +71,6 @@ class Game:
             player.draw_objective_card(self.objective_cards_deck, True)
 
         game_finished = False
-        rd.shuffle(self.train_cards_deck.cards)
-        self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
-
         while not game_finished:
             # Implement turn handling and stop cases
             for player in self.players:
@@ -103,6 +103,8 @@ class Game:
                 "# \t1 - Draw a train card                         #\n"
                 "# \t2 - Draw an Objective card                    #\n"
                 "# \t3 - Occupy a road                             #\n"
+                "# \t4 - View your Train Cards                     #\n"
+                "# \t5 - View your Objective Cards                 #\n"
                 "#=================================================#\n"
             )
         )
@@ -119,6 +121,10 @@ class Game:
             c = player.place_train_pawns(self.board, self.discarded_train_cards)
             if c == player.change_str:
                 return self.player_turn(player)
+        elif choice == 4:
+            player.show_cards_from_hand("all")
+        elif choice == 5:
+            player.show_objective_cards()
 
     def update_turn_orders(self, last_player: Player):
         """
