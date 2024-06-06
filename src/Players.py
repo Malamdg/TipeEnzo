@@ -127,7 +127,7 @@ class Player:
         if choice == 1:
             self.draw_from_visible_cards(visible_cards, deck, discarded_cards, True)
             visible_cards.refill_cards(discarded_cards, deck)
-            if self.cards.cards[-1] == TrainCardColorEnum.JOKER:
+            if self.cards.cards[-1].color.value[0] == TrainCardColorEnum.JOKER.value[0]:
                 return
             choice = int(
                 input(
