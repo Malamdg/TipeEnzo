@@ -27,6 +27,7 @@ class Player:
     def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
         """
         A player draws 3 objective cards and must keep at least 1
+        :param first_turn:
         :param source:
         :return:
         """
@@ -236,7 +237,7 @@ class Player:
                 "Chose which card you want to keep by entering its index :"
             )
         )
-        if not first_draw and visible_cards.cards[choice-1].color.value[0] == TrainCardColorEnum.JOKER.value[0]:
+        if not first_draw and visible_cards.cards[choice - 1].color.value[0] == TrainCardColorEnum.JOKER.value[0]:
             print("You can't chose this card on your second draw!")
             return self.draw_from_visible_cards(visible_cards, deck, discarded_cards, False)
         index = int(choice) - 1
@@ -272,6 +273,67 @@ class Player:
                                                   f"(choose only one you will choose the rest later")))
             indexes.pop(chosen_cards_indexes[-1])
         self.discard_cards(chosen_cards_indexes, d_deck)
+
+    def play_turn(
+            self,
+            board: Board,
+            objective_cards_deck: ObjectiveCardsDeck,
+            train_cards_deck: TrainCardsDeck,
+            visible_train_cards_deck: VisibleTrainCardsDeck,
+            discarded_train_cards: TrainCardsDeck
+    ):
+        """
+        Do the turn of the player
+
+        :return:
+        """
+        choice = int(
+            input(
+                "#=================================================#\n"
+                "# You have the choice between the following:      #\n"
+                "# \t1 - Draw a train card                         #\n"
+                "# \t2 - Draw an Objective card                    #\n"
+                "# \t3 - Occupy a road                             #\n"
+                "# \t4 - View your Train Cards                     #\n"
+                "# \t5 - View your Objective Cards                 #\n"
+                "#=================================================#\n"
+            )
+        )
+
+        if choice == 1:
+            c = self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(
+                    board,
+                    objective_cards_deck,
+                    train_cards_deck,
+                    visible_train_cards_deck,
+                    discarded_train_cards
+                )
+        elif choice == 2:
+            c = self.draw_objective_card(objective_cards_deck)
+            if c == self.change_str:
+                return self.play_turn(
+                    board,
+                    objective_cards_deck,
+                    train_cards_deck,
+                    visible_train_cards_deck,
+                    discarded_train_cards
+                )
+        elif choice == 3:
+            c = self.place_train_pawns(board, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(
+                    board,
+                    objective_cards_deck,
+                    train_cards_deck,
+                    visible_train_cards_deck,
+                    discarded_train_cards
+                )
+        elif choice == 4:
+            self.show_cards_from_hand("all")
+        elif choice == 5:
+            self.show_objective_cards()
 
     # --- Utils
     @staticmethod

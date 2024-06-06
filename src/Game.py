@@ -89,43 +89,6 @@ class Game:
                     # End of the game
                     break
 
-    def player_turn(self, player: Player):
-        """
-        Do the turn of the player
-
-        :param player:
-        :return:
-        """
-        choice = int(
-            input(
-                "#=================================================#\n"
-                "# You have the choice between the following:      #\n"
-                "# \t1 - Draw a train card                         #\n"
-                "# \t2 - Draw an Objective card                    #\n"
-                "# \t3 - Occupy a road                             #\n"
-                "# \t4 - View your Train Cards                     #\n"
-                "# \t5 - View your Objective Cards                 #\n"
-                "#=================================================#\n"
-            )
-        )
-
-        if choice == 1:
-            c = player.draw_train_card(self.train_cards_deck, self.visible_train_cards_deck, self.discarded_train_cards)
-            if c == player.change_str:
-                return self.player_turn(player)
-        elif choice == 2:
-            c = player.draw_objective_card(self.objective_cards_deck)
-            if c == player.change_str:
-                return self.player_turn(player)
-        elif choice == 3:
-            c = player.place_train_pawns(self.board, self.discarded_train_cards)
-            if c == player.change_str:
-                return self.player_turn(player)
-        elif choice == 4:
-            player.show_cards_from_hand("all")
-        elif choice == 5:
-            player.show_objective_cards()
-
     def update_turn_orders(self, last_player: Player):
         """
         Reorder players by setting their turn_order and re-oder self.players accordingly
