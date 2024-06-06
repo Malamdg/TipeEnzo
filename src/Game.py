@@ -1,7 +1,7 @@
 import random as rd
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Board import Board
-from src.Players import Player, AIPlayer
+from src.Players import Player, AIPlayer, RandomAIPlayer, DefensiveAIPlayer, BalancedAIPlayer, GreedyAIPlayer, MLBasedAIPlayer
 from src.Enumeration import PlayerColorEnum
 
 
@@ -49,8 +49,35 @@ class Game:
         for i in range(n_players):
             self.players.append(Player(color_list.pop(), order_list.pop()))
 
+        ai_players_list = [
+            "balanced",
+            "base",
+            "defensive",
+            "greedy",
+            "random"
+        ]
+        # Add random AI players
         for i in range(self.ai_count):
-            self.players.append(AIPlayer(color_list.pop(), order_list.pop()))
+            player = ai_players_list.pop(rd.randrange(len(ai_players_list)))
+            if player == "balanced":
+                self.players.append(BalancedAIPlayer(color_list.pop(), order_list.pop()))
+                return
+
+            if player == "base":
+                self.players.append(AIPlayer(color_list.pop(), order_list.pop()))
+                return
+
+            if player == "defensive":
+                self.players.append(DefensiveAIPlayer(color_list.pop(), order_list.pop()))
+                return
+
+            if player == "greedy":
+                self.players.append(GreedyAIPlayer(color_list.pop(), order_list.pop()))
+                return
+
+            if player == "random":
+                self.players.append(RandomAIPlayer(color_list.pop(), order_list.pop()))
+                return
 
         self.players.sort()
         rd.shuffle(self.train_cards_deck.cards)
@@ -108,3 +135,27 @@ class Game:
             reordered_players[player.turn_order - 1] = player  # turn orders are 1 based so reindex
 
         self.players = reordered_players
+
+
+class MLVsAI(Game):
+    def init_players(self):
+        ai_players_list = [
+            "balanced",
+            "base",
+            "defensive",
+            "greedy",
+            "random"
+        ]
+
+        rd.shuffle(ai_players_list)
+        ai_players_list.pop()
+
+        # Index of ml player
+        ml_id = rd.randrange(self.player_total)
+
+        color_list = [color for color in PlayerColorEnum]
+        rd.shuffle(color_list)
+
+        for i in range(self.player_total):
+            if i == ml_id:
+                self.players.append(MLBasedAIPlayer(color_list.pop(), i+1, model))

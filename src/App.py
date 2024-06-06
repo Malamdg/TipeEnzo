@@ -114,3 +114,11 @@ class TicketToRide(App):
 class TicketToRideNoAi(TicketToRide):
     def __init__(self):
         super().__init__(False)
+
+
+class TicketToRideTrainAi(TicketToRide):
+    def run(self):
+        n_games = int(input("How many training games ? : "))
+        while n_games != 0:
+            game = Game(n_player=0, n_ai=5)
+            game.play()

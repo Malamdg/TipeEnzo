@@ -625,3 +625,31 @@ class BalancedAIPlayer(AIPlayer):
         else:
             return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
                                   discarded_train_cards)
+
+
+class MLBasedAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int, model):
+        super().__init__(_color, _turn_order)
+        self.str_type = "ML-Based AI"
+        self.model = model
+
+    def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
+                  visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
+        # Obtenir l'état actuel du joueur
+        player_state = get_player_state(self, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                        discarded_train_cards)
+
+        # Convertir l'état en format approprié pour le modèle
+        serialized_state = serialize_state(player_state)
+
+        # Prédire l'action
+        action = self.model.predict([serialized_state])[0]
+
+        # Effectuer l'action prédite
+        self.execute_action(action, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                            discarded_train_cards)
+
+    def execute_action(self, action, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                       discarded_train_cards):
+        # Implémenter cette fonction pour exécuter l'action prédite par le modèle
+        pass
