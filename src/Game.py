@@ -1,5 +1,5 @@
 import random as rd
-from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck
+from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer
 from src.Enumeration import PlayerColorEnum
@@ -12,7 +12,7 @@ def trigger_last_turn(player: Player):
     Return whether player triggers last turn
     :return:
     """
-    return len(player.pawns) > 2
+    return len(player.pawns) < 2
 
 
 # --- Game object
@@ -25,7 +25,7 @@ class Game:
 
         # --- Game resources
         self.train_cards_deck = TrainCardsDeck(empty=False)
-        self.visible_train_cards_deck = TrainCardsDeck(empty=True)
+        self.visible_train_cards_deck = VisibleTrainCardsDeck()
         self.discarded_train_cards = TrainCardsDeck(empty=True)
         self.objective_cards_deck = ObjectiveCardsDeck(empty=False)
         self.board = Board()
@@ -53,9 +53,12 @@ class Game:
             self.players.append(AIPlayer(color_list.pop(), order_list.pop()))
 
         self.players.sort()
-
+        rd.shuffle(self.train_cards_deck.cards)
+        self.visible_train_cards_deck.refill_cards(self.discarded_train_cards, self.train_cards_deck)
         # Display starting player order
         for player in self.players:
+            for _ in range(4):
+                player.cards.add_card(self.train_cards_deck.draw())
             print(player)
 
     def play(self):
@@ -64,12 +67,14 @@ class Game:
 
         :return:
         """
-        game_finished = False
+        for player in self.players:
+            player.draw_objective_card(self.objective_cards_deck, True)
 
+        game_finished = False
         while not game_finished:
             # Implement turn handling and stop cases
             for player in self.players:
-                self.player_turn(player)
+                player.player_turn()
                 # Handle stop case
                 if trigger_last_turn(player):
                     # Set game_finished to true
@@ -79,19 +84,10 @@ class Game:
 
                     # Play last turn
                     for p in self.players:
-                        self.player_turn(p)
+                        player.player_turn()
 
                     # End of the game
                     break
-
-    def player_turn(self, player: Player):
-        """
-        Do the turn of the player
-
-        :param player:
-        :return:
-        """
-        pass
 
     def update_turn_orders(self, last_player: Player):
         """

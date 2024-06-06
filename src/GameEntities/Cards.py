@@ -1,6 +1,7 @@
 from src.Enumeration import TrainCardColorEnum, CityEnum
 import random as rd
 
+
 # -------------------- #
 # --- CARD CLASSES --- #
 # -------------------- #
@@ -28,7 +29,7 @@ class ObjectiveCard(Card):
         self.points = points
 
     def __str__(self):
-        return f"From {self.start} to {self.destination} | {self.points}pts"
+        return f"From {self.start.value.capitalize()} to {self.destination.value.capitalize()} | {self.points}pts"
 
 
 class Deck:
@@ -36,8 +37,10 @@ class Deck:
         self.cards = cards
 
     def shuffle(self):
+        cards = self.cards
         # shuffle algorithm
-        rd.shuffle(self.cards)
+        rd.shuffle(cards)
+        self.cards = cards
 
     def draw(self):
         if len(self.cards) == 0:
@@ -104,6 +107,15 @@ class TrainCardsDeck(Deck):
                     train_cards.append(TrainCard(color))
             super().__init__(train_cards)
 
+    def count_by_color(self):
+        color_count_dict = {}
+        for card in self.cards:
+            if card not in color_count_dict:
+                color_count_dict[card.color.value[0]] = 1
+                continue
+            color_count_dict[card.color.value[0]] += 1
+        return color_count_dict
+
 
 class VisibleTrainCardsDeck(TrainCardsDeck):
     def __init__(self):
@@ -111,3 +123,22 @@ class VisibleTrainCardsDeck(TrainCardsDeck):
 
     def get(self, i: int):
         return self.cards.pop(i)
+
+    def refill_cards(self, discarded_deck: TrainCardsDeck, deck: TrainCardsDeck):
+        # Not enough cards to apply rule
+        if len(self.cards) + len(deck.cards) + len(discarded_deck.cards) <= 5:
+            discarded_deck.shuffle()
+            deck.merge_decks(discarded_deck)
+            self.merge_decks(deck)
+            return
+        # Apply rule 3 visible jokers => discard all and refill
+        while len(self.cards) != 5:
+            self.add_card(deck.draw())
+            if len(deck.cards) == 0:
+                discarded_deck.shuffle()
+                deck.merge_decks(discarded_deck)
+        color_dict = self.count_by_color()
+        if (TrainCardColorEnum.JOKER.value[0] in color_dict.keys()
+                and color_dict[TrainCardColorEnum.JOKER.value[0]] == 3):
+            discarded_deck.merge_decks(self)
+            self.refill_cards(discarded_deck, deck)
