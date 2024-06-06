@@ -12,7 +12,7 @@ def trigger_last_turn(player: Player):
     Return whether player triggers last turn
     :return:
     """
-    return len(player.pawns) > 2
+    return len(player.pawns) < 2
 
 
 # --- Game object
