@@ -165,9 +165,17 @@ class Game:
         self.players.sort()
         self.winner = self.players[0]
 
-        print(f"Winner : {self.winner.__str__()}!")
+        print(f"Winner : {self.winner.__str__()}! \n")
+        i = 1
+        for player in self.players:
+            print(f"#{i} {player.__str__()} ")
+            i += 1
+
 
 class MLVsAI(Game):
+    """
+    Show up MLBasedAIPlayer training
+    """
     def init_players(self):
         ai_players_list = [
             "balanced",
@@ -189,3 +197,26 @@ class MLVsAI(Game):
         for i in range(self.player_total):
             if i == ml_id:
                 self.players.append(MLBasedAIPlayer(color_list.pop(), i+1, model))
+                continue
+
+            player = ai_players_list.pop(rd.randrange(len(ai_players_list)))
+            if player == "balanced":
+                self.players.append(BalancedAIPlayer(color_list.pop(), i+1))
+                return
+
+            if player == "base":
+                self.players.append(AIPlayer(color_list.pop(), i+1))
+                return
+
+            if player == "defensive":
+                self.players.append(DefensiveAIPlayer(color_list.pop(), i+1))
+                return
+
+            if player == "greedy":
+                self.players.append(GreedyAIPlayer(color_list.pop(), i+1))
+                return
+
+            if player == "random":
+                self.players.append(RandomAIPlayer(color_list.pop(), i+1))
+                return
+

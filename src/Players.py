@@ -1,3 +1,5 @@
+import os
+
 from src.Enumeration import PlayerColorEnum, TrainCardColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
@@ -5,6 +7,8 @@ from src.GameEntities.Pawn import Pawn
 from src.GameEntities.Score import Score
 from src.Utils.Math import Algorithm
 import random
+import joblib  # Ensure sklearn is installed
+import numpy as np
 
 
 class Player:
@@ -634,28 +638,54 @@ class BalancedAIPlayer(AIPlayer):
 
 
 class MLBasedAIPlayer(AIPlayer):
-    def __init__(self, _color: PlayerColorEnum, _turn_order: int, model):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
         super().__init__(_color, _turn_order)
-        self.str_type = "ML-Based AI"
-        self.model = model
+        self.str_type = "ML Based AI"
+        model_path = os.path.join('src', 'Model', 'trained_model.pkl')
+        self.model = joblib.load(model_path)  # Charger le modèle entraîné
 
     def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
                   visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
-        # Obtenir l'état actuel du joueur
-        player_state = get_player_state(self, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                                        discarded_train_cards)
+        # Extraire les caractéristiques de l'état du jeu
+        features = self.extract_features(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                         discarded_train_cards)
 
-        # Convertir l'état en format approprié pour le modèle
-        serialized_state = serialize_state(player_state)
+        # Prédire l'action à l'aide du modèle ML
+        action = self.model.predict([features])[0]
 
-        # Prédire l'action
-        action = self.model.predict([serialized_state])[0]
+        # Exécuter l'action prédite
+        if action == 1:
+            self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
+        elif action == 2:
+            self.draw_objective_card(objective_cards_deck)
+        elif action == 3:
+            c = self.place_train_pawns(board, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        else:
+            return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                  discarded_train_cards)
 
-        # Effectuer l'action prédite
-        self.execute_action(action, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                            discarded_train_cards)
+    def extract_features(self, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                         discarded_train_cards):
+        # Exemple simple d'extraction des caractéristiques
+        features = []
 
-    def execute_action(self, action, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                       discarded_train_cards):
-        # Implémenter cette fonction pour exécuter l'action prédite par le modèle
-        pass
+        # Nombre de cartes objectifs dans la main du joueur
+        features.append(len(self.objectives.cards))
+
+        # Nombre de cartes de train dans la main du joueur
+        features.append(len(self.cards.cards))
+
+        # Nombre de cartes de train visibles
+        features.append(len(visible_train_cards_deck.cards))
+
+        # Nombre de pions restants sur le plateau pour le joueur
+        features.append(len(self.pawns))
+
+        # Scores des joueurs
+        features.append(self.score.value)
+
+        return np.array(features)
+
