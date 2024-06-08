@@ -61,7 +61,7 @@ class UndirectedGraph(Graph):
 
     def init_from_road_list(self, roads: list[Road]):
         for road in roads:
-            self.add_edge(road.start, road.end, road.length)
+            self.add_edge(road.start.value, road.end.value, road.length)
 
     def init_from_board(self, board: Board):
         self.init_from_road_list(board.roads)
@@ -72,6 +72,9 @@ class UndirectedGraph(Graph):
         """
         visited = set()
         stack = [start]
+
+        if start not in self.vertices.keys() or end not in self.vertices.keys():
+            return False
 
         while stack:
             vertex = stack.pop()
@@ -108,5 +111,7 @@ class Algorithm:
 
     @staticmethod
     def is_complete(objective_card, graph):
-        return graph.is_connected(objective_card.start, objective_card.destination)
+        if objective_card is None:
+            return False
+        return graph.is_connected(objective_card.start.value, objective_card.destination.value)
 

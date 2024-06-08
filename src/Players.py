@@ -188,6 +188,9 @@ class Player:
         if len(self.cards.cards) == 0:
             print("You don't have any cards in your hand now")
             return self.change_str
+        if len(self.pawns) == 0:
+            print("You don't have any pawn right now")
+            return self.change_str
         roads = self.get_affordable_roads(self.get_available_roads(board))
         print(f"Here are the roads you can occupy: \n")
         i = 0
@@ -267,8 +270,12 @@ class Player:
             self.pawns.pop()
 
     def discard_cards(self, d_indexes: list, d_deck: TrainCardsDeck):
+        discarded_cards = []
         for i in d_indexes:
-            d_deck.add_card(self.cards.cards.pop(i))
+            discarded_cards.append(self.cards.cards[i])
+
+        for card in discarded_cards:
+            self.cards.cards.remove(card)
 
     def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
@@ -318,6 +325,7 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 2:
             c = self.draw_objective_card(objective_cards_deck)
             if c == self.change_str:
@@ -328,6 +336,7 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 3:
             c = self.place_train_pawns(board, discarded_train_cards)
             if c == self.change_str:
@@ -338,17 +347,17 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 4:
             self.show_cards_from_hand("all")
         elif choice == 5:
             self.show_objective_cards()
 
     # --- Utils
-    @staticmethod
-    def get_available_roads(board: Board):
+    def get_available_roads(self, board: Board):
         available_roads = []
         for road in board.roads:
-            if not road.occupied:
+            if not road.occupied and len(self.pawns) >= road.length:
                 available_roads.append(road)
         return available_roads
 
@@ -454,6 +463,9 @@ class AIPlayer(Player):
     def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
         drawn_cards = [source.draw() for _ in range(3)]
 
+        if len(drawn_cards) == 0:
+            return self.change_str
+
         # Logic to keep cards based on some heuristic
         kept_cards = random.sample(drawn_cards, k=2 if first_turn else 1)
         discarded_cards = [card for card in drawn_cards if card not in kept_cards]
@@ -493,9 +505,12 @@ class AIPlayer(Player):
     def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
         available_roads = self.get_affordable_roads(self.get_available_roads(board))
 
-        if available_roads:
+        if len(self.pawns) != 0 and available_roads:
             chosen_road = random.choice(available_roads)
-            self.pay_road_cost(chosen_road, discarded_cards)
+            try:
+                self.pay_road_cost(chosen_road, discarded_cards)
+            except ValueError:
+                return self.change_str
             self.occupy_road(chosen_road)
             self.score.value += self.score.player_score_dict[chosen_road.length]
             self.update_objectives()
@@ -508,15 +523,16 @@ class AIPlayer(Player):
         if choice == 1:
             self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
         elif choice == 2:
-            self.draw_objective_card(objective_cards_deck)
+            c = self.draw_objective_card(objective_cards_deck)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
         elif choice == 3:
             c = self.place_train_pawns(board, discarded_train_cards)
             if c == self.change_str:
                 return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
                                       discarded_train_cards)
-        else:
-            return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                                  discarded_train_cards)
+        return choice
 
     def draw_from_visible_cards(self, visible_cards: VisibleTrainCardsDeck, deck: TrainCardsDeck,
                                 discarded_cards: TrainCardsDeck, first_draw: bool):
@@ -553,6 +569,10 @@ class GreedyAIPlayer(AIPlayer):
     def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
         drawn_cards = [source.draw() for _ in range(3)]
 
+        if None in drawn_cards:
+            while None in drawn_cards:
+                drawn_cards.remove(None)
+
         # Keep the cards with the highest points
         drawn_cards.sort(key=lambda card: card.points, reverse=True)
         kept_cards = drawn_cards[:2 if first_turn else 1]
@@ -566,7 +586,7 @@ class GreedyAIPlayer(AIPlayer):
         # Prioritize drawing visible non-joker cards, then draw from deck
         non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
         if non_joker_cards:
-            chosen_card = max(non_joker_cards, key=lambda card: card.points)  # Or some other metric
+            chosen_card = random.choice(non_joker_cards)
             self.cards.add_card(chosen_card)
             visible_cards.cards.remove(chosen_card)
         else:
@@ -577,7 +597,7 @@ class GreedyAIPlayer(AIPlayer):
         if visible_cards.cards:
             non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
             if non_joker_cards:
-                chosen_card = max(non_joker_cards, key=lambda card: card.points)  # Or some other metric
+                chosen_card = random.choice(non_joker_cards)
                 self.cards.add_card(chosen_card)
                 visible_cards.cards.remove(chosen_card)
             else:
@@ -596,10 +616,13 @@ class DefensiveAIPlayer(AIPlayer):
     def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
         available_roads = self.get_affordable_roads(self.get_available_roads(board))
 
-        if available_roads:
+        if len(self.pawns) != 0 and available_roads:
             # Choose roads strategically to block opponents
             chosen_road = self.choose_blocking_road(available_roads)
-            self.pay_road_cost(chosen_road, discarded_cards)
+            try:
+                self.pay_road_cost(chosen_road, discarded_cards)
+            except ValueError:
+                return self.change_str
             self.occupy_road(chosen_road)
             self.score.value += self.score.player_score_dict[chosen_road.length]
             self.update_objectives()
@@ -626,15 +649,16 @@ class BalancedAIPlayer(AIPlayer):
         if choice == 1:
             self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
         elif choice == 2:
-            self.draw_objective_card(objective_cards_deck)
+            c = self.draw_objective_card(objective_cards_deck)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
         elif choice == 3:
             c = self.place_train_pawns(board, discarded_train_cards)
             if c == self.change_str:
                 return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
                                       discarded_train_cards)
-        else:
-            return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                                  discarded_train_cards)
+        return choice
 
 
 class MLBasedAIPlayer(AIPlayer):
@@ -642,18 +666,17 @@ class MLBasedAIPlayer(AIPlayer):
         super().__init__(_color, _turn_order)
         self.str_type = "ML Based AI"
         model_path = os.path.join('src', 'Model', 'trained_model.pkl')
-        self.model = joblib.load(model_path)  # Charger le modèle entraîné
+        self.model = joblib.load(model_path)  # Load trained model
 
     def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
                   visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
-        # Extraire les caractéristiques de l'état du jeu
-        features = self.extract_features(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                                         discarded_train_cards)
+        # Extract features from game state
+        features = self.extract_features(visible_train_cards_deck)
 
-        # Prédire l'action à l'aide du modèle ML
+        # Predict action with ML model
         action = self.model.predict([features])[0]
 
-        # Exécuter l'action prédite
+        # Execute predicted action
         if action == 1:
             self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
         elif action == 2:
@@ -667,25 +690,14 @@ class MLBasedAIPlayer(AIPlayer):
             return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
                                   discarded_train_cards)
 
-    def extract_features(self, board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
-                         discarded_train_cards):
-        # Exemple simple d'extraction des caractéristiques
-        features = []
-
-        # Nombre de cartes objectifs dans la main du joueur
-        features.append(len(self.objectives.cards))
-
-        # Nombre de cartes de train dans la main du joueur
-        features.append(len(self.cards.cards))
-
-        # Nombre de cartes de train visibles
-        features.append(len(visible_train_cards_deck.cards))
-
-        # Nombre de pions restants sur le plateau pour le joueur
-        features.append(len(self.pawns))
-
-        # Scores des joueurs
-        features.append(self.score.value)
+    def extract_features(self, visible_train_cards_deck):
+        # Simple implementation example of features extraction
+        features = [
+            len(self.objectives.cards),             # Nombre de cartes objectifs dans la main du joueur
+            len(self.cards.cards),                  # Nombre de cartes de train dans la main du joueur
+            len(visible_train_cards_deck.cards),    # Nombre de cartes de train visibles
+            len(self.pawns),                        # Nombre de pions restants sur le plateau pour le joueur
+            self.score.value                        # Scores des joueurs
+        ]
 
         return np.array(features)
-

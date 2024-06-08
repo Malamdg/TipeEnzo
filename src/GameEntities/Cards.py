@@ -117,10 +117,13 @@ class TrainCardsDeck(Deck):
 
     def count_by_color(self):
         color_count_dict = {}
+        if None in self.cards:
+            while None in self.cards:
+                self.cards.remove(None)
+
         for card in self.cards:
             if card not in color_count_dict:
-                color_count_dict[card.color.value[0]] = 1
-                continue
+                color_count_dict[card.color.value[0]] = 0
             color_count_dict[card.color.value[0]] += 1
         return color_count_dict
 
