@@ -27,6 +27,14 @@ class ObjectiveCard(Card):
         self.start = start_city
         self.destination = destination_city
         self.points = points
+        self.completed = False
+
+    def set_completed(self):
+        self.completed = True
+
+    def get_value(self):
+        direction = 1 if self.completed else -1
+        return self.points * direction
 
     def __str__(self):
         return f"From {self.start.value.capitalize()} to {self.destination.value.capitalize()} | {self.points}pts"

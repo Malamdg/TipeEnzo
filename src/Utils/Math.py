@@ -66,6 +66,23 @@ class UndirectedGraph(Graph):
     def init_from_board(self, board: Board):
         self.init_from_road_list(board.roads)
 
+    def is_connected(self, start, end):
+        """
+        Use DFS to check if there's a path between start and end.
+        """
+        visited = set()
+        stack = [start]
+
+        while stack:
+            vertex = stack.pop()
+            if vertex == end:
+                return True
+            if vertex not in visited:
+                visited.add(vertex)
+                stack.extend(self.vertices[vertex] - visited)
+
+        return False
+
 
 class Algorithm:
     @staticmethod
@@ -80,3 +97,16 @@ class Algorithm:
             longest_path_length = max(longest_path_length, max(dist.values()))
 
         return longest_path_length
+
+    @staticmethod
+    def update_objective_cards(player):
+        graph = UndirectedGraph()
+        graph.init_from_road_list(player.roads)
+        for objective_card in player.objectives.cards:
+            if Algorithm.is_complete(objective_card, graph):
+                objective_card.set_completed()
+
+    @staticmethod
+    def is_complete(objective_card, graph):
+        return graph.is_connected(objective_card.start, objective_card.destination)
+
