@@ -3,6 +3,7 @@ from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTr
 from src.GameEntities.Board import Board
 from src.Players import Player, AIPlayer, RandomAIPlayer, DefensiveAIPlayer, BalancedAIPlayer, GreedyAIPlayer, MLBasedAIPlayer
 from src.Enumeration import PlayerColorEnum
+from src.Utils.Math import Algorithm
 
 
 # --- Utils
@@ -32,7 +33,7 @@ class Game:
 
         # --- Players
         self.players = []
-
+        self.winner = None
         self.init_players()
 
     def init_players(self):
@@ -111,10 +112,12 @@ class Game:
 
                     # Play last turn
                     for p in self.players:
-                        player.player_turn()
+                        p.player_turn()
 
                     # End of the game
                     break
+
+        self.endgame()
 
     def update_turn_orders(self, last_player: Player):
         """
@@ -136,6 +139,33 @@ class Game:
 
         self.players = reordered_players
 
+    def endgame(self):
+        # Handle the longest railway bonus card
+        max_length = 0
+        tie_players = []
+
+        for player in self.players:
+            longest_road = Algorithm.longest_road(player)
+            if longest_road > max_length:
+                max_length = longest_road
+                tie_players = []
+
+            if longest_road == max_length:
+                tie_players.append(player)
+
+        for player in tie_players:
+            player.score.value += 10
+
+        # Handle objective cards
+        for player in self.players:
+            for objective_card in player.objectives.cards:
+                player.score.value += objective_card.get_value()
+
+        # Sort by score and get the winner
+        self.players.sort()
+        self.winner = self.players[0]
+
+        print(f"Winner : {self.winner.__str__()}!")
 
 class MLVsAI(Game):
     def init_players(self):

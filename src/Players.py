@@ -208,6 +208,7 @@ class Player:
         self.pay_road_cost(chosen_road, discarded_cards)
         self.occupy_road(chosen_road)
         self.score.value += self.score.player_score_dict[chosen_road.length]
+        self.update_objectives()
 
     # --- Base action
     def draw_from_deck(self, deck: TrainCardsDeck):
@@ -397,6 +398,9 @@ class Player:
             index += 1
             print(f"#\t {index} , {card.__str__()}")
 
+    def update_objectives(self):
+        Algorithm.update_objective_cards(self)
+
     # --- Operators
 
     def __str__(self):
@@ -490,6 +494,7 @@ class AIPlayer(Player):
             self.pay_road_cost(chosen_road, discarded_cards)
             self.occupy_road(chosen_road)
             self.score.value += self.score.player_score_dict[chosen_road.length]
+            self.update_objectives()
         else:
             return self.change_str
 
@@ -593,6 +598,7 @@ class DefensiveAIPlayer(AIPlayer):
             self.pay_road_cost(chosen_road, discarded_cards)
             self.occupy_road(chosen_road)
             self.score.value += self.score.player_score_dict[chosen_road.length]
+            self.update_objectives()
         else:
             return self.change_str
 
