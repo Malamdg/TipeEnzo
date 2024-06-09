@@ -129,7 +129,7 @@ class TicketToRideTrainAi(TicketToRide):
         ai_trainer.clear_data()
         for i in range(n_games):
             print(f"Game #{i+1} \n")
-            n_ai = random.randint(2, 5)  # Nombre aléatoire de joueurs IA entre 2 et 5
+            n_ai = random.randint(2, 5)  # Random number of AI player
             game = TrainingGame(n_player=0, n_ai=n_ai, ai_trainer=ai_trainer)
             game.play()
         ai_trainer.save_data(self.model_data_path)

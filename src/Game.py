@@ -1,4 +1,5 @@
 import random as rd
+import sys
 import time
 
 from src.Players import *
@@ -181,10 +182,6 @@ class Game:
         self.winner = self.players[0]
 
         print(f"Winner : {self.winner.__str__()}! \n")
-        i = 1
-        for player in self.players:
-            print(f"#{i} {player.__str__()} ")
-            i += 1
 
 
 class TrainingGame(Game):
@@ -205,11 +202,14 @@ class TrainingGame(Game):
 
         game_finished = False
         self.ai_trainer.clear_data()
+        turn_number = 0
         while not game_finished:
-
+            turn_number += 1
+            delta = time.time() - start_time
+            sys.stdout.write("\rElapsed time : %.4fs" % delta)
             # Implement turn handling and stop cases
             for player in self.players:
-                state = self.get_game_state(player)
+                state = self.get_game_state(turn_number, player)
                 action = player.play_turn(
                     self.board,
                     self.objective_cards_deck,
@@ -228,7 +228,7 @@ class TrainingGame(Game):
 
                     # Play last turn
                     for _player in self.players:
-                        state = self.get_game_state(player)
+                        state = self.get_game_state(turn_number, player)
                         action = _player.play_turn(
                             self.board,
                             self.objective_cards_deck,
@@ -240,14 +240,15 @@ class TrainingGame(Game):
 
                     # End of the game
                     break
-
+        print("\n")
         self.endgame()
         self.ai_trainer.save_data(self.model_data_path)
 
-    def get_game_state(self, player):
+    def get_game_state(self, turn_number, player):
         state = {
             'player_total': len(self.players),
-            'player_turn': player.turn_order,
+            'player_turn_order': player.turn_order,
+            'turn_number': turn_number,
             'objective_cards_count': len(player.objectives.cards),
             'train_cards_count': len(player.cards.cards),
             'visible_train_cards_count': len(self.visible_train_cards_deck.cards),
