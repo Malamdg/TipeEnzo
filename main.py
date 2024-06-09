@@ -1,4 +1,4 @@
-from src.App import TicketToRideNoAi
+from src.App import TicketToRideNoAi, TicketToRideTrainAi
 
 
 def main():
@@ -6,7 +6,8 @@ def main():
     Main function for project
     :return:
     """
-    app = TicketToRideNoAi()
+    # app = TicketToRideNoAi()
+    app = TicketToRideTrainAi()
     app.run()
 
 

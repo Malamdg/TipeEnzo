@@ -1,11 +1,13 @@
-from src.Game import Game
+from src.Game import Game, TrainingGame
+import random
+import os
+from src.Utils.AiTrainer import TicketToRideTrainAI
 
 
 class App:
     """
     Abstract App class
     """
-
     def run(self):
         pass
 
@@ -114,3 +116,20 @@ class TicketToRide(App):
 class TicketToRideNoAi(TicketToRide):
     def __init__(self):
         super().__init__(False)
+
+
+class TicketToRideTrainAi(TicketToRide):
+    def __init__(self):
+        super().__init__(True)
+        self.model_data_path = os.path.join('src', 'Data', 'data.csv')
+
+    def run(self):
+        n_games = int(input("How many training games ? : "))
+        ai_trainer = TicketToRideTrainAI()
+        ai_trainer.clear_data()
+        for i in range(n_games):
+            print(f"Game #{i+1} \n")
+            n_ai = random.randint(2, 5)  # Random number of AI player
+            game = TrainingGame(n_player=0, n_ai=n_ai, ai_trainer=ai_trainer)
+            game.play()
+        ai_trainer.save_data(self.model_data_path)

@@ -1,9 +1,14 @@
+import os
+
 from src.Enumeration import PlayerColorEnum, TrainCardColorEnum
 from src.GameEntities.Board import Road, Board
 from src.GameEntities.Cards import TrainCardsDeck, ObjectiveCardsDeck, VisibleTrainCardsDeck
 from src.GameEntities.Pawn import Pawn
 from src.GameEntities.Score import Score
 from src.Utils.Math import Algorithm
+import random
+import joblib  # Ensure sklearn is installed
+import numpy as np
 
 
 class Player:
@@ -183,6 +188,9 @@ class Player:
         if len(self.cards.cards) == 0:
             print("You don't have any cards in your hand now")
             return self.change_str
+        if len(self.pawns) == 0:
+            print("You don't have any pawn right now")
+            return self.change_str
         roads = self.get_affordable_roads(self.get_available_roads(board))
         print(f"Here are the roads you can occupy: \n")
         i = 0
@@ -207,6 +215,7 @@ class Player:
         self.pay_road_cost(chosen_road, discarded_cards)
         self.occupy_road(chosen_road)
         self.score.value += self.score.player_score_dict[chosen_road.length]
+        self.update_objectives()
 
     # --- Base action
     def draw_from_deck(self, deck: TrainCardsDeck):
@@ -261,8 +270,12 @@ class Player:
             self.pawns.pop()
 
     def discard_cards(self, d_indexes: list, d_deck: TrainCardsDeck):
+        discarded_cards = []
         for i in d_indexes:
-            d_deck.add_card(self.cards.cards.pop(i))
+            discarded_cards.append(self.cards.cards[i])
+
+        for card in discarded_cards:
+            self.cards.cards.remove(card)
 
     def pay_road_cost(self, chosen_road, d_deck: TrainCardsDeck):
         print("Choose which card you want to pay with")
@@ -312,6 +325,7 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 2:
             c = self.draw_objective_card(objective_cards_deck)
             if c == self.change_str:
@@ -322,6 +336,7 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 3:
             c = self.place_train_pawns(board, discarded_train_cards)
             if c == self.change_str:
@@ -332,17 +347,17 @@ class Player:
                     visible_train_cards_deck,
                     discarded_train_cards
                 )
+            return choice
         elif choice == 4:
             self.show_cards_from_hand("all")
         elif choice == 5:
             self.show_objective_cards()
 
     # --- Utils
-    @staticmethod
-    def get_available_roads(board: Board):
+    def get_available_roads(self, board: Board):
         available_roads = []
         for road in board.roads:
-            if not road.occupied:
+            if not road.occupied and len(self.pawns) >= road.length:
                 available_roads.append(road)
         return available_roads
 
@@ -396,6 +411,9 @@ class Player:
             index += 1
             print(f"#\t {index} , {card.__str__()}")
 
+    def update_objectives(self):
+        Algorithm.update_objective_cards(self)
+
     # --- Operators
 
     def __str__(self):
@@ -441,3 +459,245 @@ class AIPlayer(Player):
     def __init__(self, _color: PlayerColorEnum, _turn_order: int):
         super().__init__(_color, _turn_order)
         self.str_type = "AI"
+
+    def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
+        drawn_cards = [source.draw() for _ in range(3)]
+
+        if len(drawn_cards) == 0:
+            return self.change_str
+
+        # Logic to keep cards based on some heuristic
+        kept_cards = random.sample(drawn_cards, k=2 if first_turn else 1)
+        discarded_cards = [card for card in drawn_cards if card not in kept_cards]
+
+        self.objectives.cards.extend(kept_cards)
+        source.cards.extend(discarded_cards)
+
+    def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck,
+                        discarded_cards: TrainCardsDeck):
+        # Example heuristic: prioritize non-joker visible cards, then face-down cards
+        if visible_cards.cards:
+            non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
+            if non_joker_cards:
+                chosen_card = random.choice(non_joker_cards)
+                self.cards.add_card(chosen_card)
+                visible_cards.cards.remove(chosen_card)
+            else:
+                self.cards.add_card(deck.draw())
+        else:
+            self.cards.add_card(deck.draw())
+
+        visible_cards.refill_cards(discarded_cards, deck)
+
+        if visible_cards.cards:
+            non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
+            if non_joker_cards:
+                chosen_card = random.choice(non_joker_cards)
+                self.cards.add_card(chosen_card)
+                visible_cards.cards.remove(chosen_card)
+            else:
+                self.cards.add_card(deck.draw())
+        else:
+            self.cards.add_card(deck.draw())
+
+        visible_cards.refill_cards(discarded_cards, deck)
+
+    def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
+        available_roads = self.get_affordable_roads(self.get_available_roads(board))
+
+        if len(self.pawns) != 0 and available_roads:
+            chosen_road = random.choice(available_roads)
+            try:
+                self.pay_road_cost(chosen_road, discarded_cards)
+            except ValueError:
+                return self.change_str
+            self.occupy_road(chosen_road)
+            self.score.value += self.score.player_score_dict[chosen_road.length]
+            self.update_objectives()
+        else:
+            return self.change_str
+
+    def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
+                  visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
+        choice = random.choice([1, 2, 3])
+        if choice == 1:
+            self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
+        elif choice == 2:
+            c = self.draw_objective_card(objective_cards_deck)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        elif choice == 3:
+            c = self.place_train_pawns(board, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        return choice
+
+    def draw_from_visible_cards(self, visible_cards: VisibleTrainCardsDeck, deck: TrainCardsDeck,
+                                discarded_cards: TrainCardsDeck, first_draw: bool):
+        if visible_cards.cards:
+            non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
+            if first_draw or not non_joker_cards:
+                chosen_card = random.choice(visible_cards.cards)
+            else:
+                chosen_card = random.choice(non_joker_cards)
+
+            self.cards.add_card(chosen_card)
+            visible_cards.cards.remove(chosen_card)
+            visible_cards.refill_cards(discarded_cards, deck)
+        else:
+            self.cards.add_card(deck.draw())
+
+    def pay_road_cost(self, chosen_road: Road, discarded_cards: TrainCardsDeck):
+        usable_cards = self.get_usable_card_indexes(chosen_road)
+        chosen_cards = random.sample(usable_cards, k=chosen_road.length)
+        self.discard_cards(chosen_cards, discarded_cards)
+
+
+class RandomAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
+        super().__init__(_color, _turn_order)
+        self.str_type = "Random AI"
+
+
+class GreedyAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
+        super().__init__(_color, _turn_order)
+        self.str_type = "Greedy AI"
+
+    def draw_objective_card(self, source: ObjectiveCardsDeck, first_turn=False):
+        drawn_cards = [source.draw() for _ in range(3)]
+
+        if None in drawn_cards:
+            while None in drawn_cards:
+                drawn_cards.remove(None)
+
+        # Keep the cards with the highest points
+        drawn_cards.sort(key=lambda card: card.points, reverse=True)
+        kept_cards = drawn_cards[:2 if first_turn else 1]
+        discarded_cards = drawn_cards[2 if first_turn else 1:]
+
+        self.objectives.cards.extend(kept_cards)
+        source.cards.extend(discarded_cards)
+
+    def draw_train_card(self, deck: TrainCardsDeck, visible_cards: VisibleTrainCardsDeck,
+                        discarded_cards: TrainCardsDeck):
+        # Prioritize drawing visible non-joker cards, then draw from deck
+        non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
+        if non_joker_cards:
+            chosen_card = random.choice(non_joker_cards)
+            self.cards.add_card(chosen_card)
+            visible_cards.cards.remove(chosen_card)
+        else:
+            self.cards.add_card(deck.draw())
+
+        visible_cards.refill_cards(discarded_cards, deck)
+
+        if visible_cards.cards:
+            non_joker_cards = [card for card in visible_cards.cards if card.color != TrainCardColorEnum.JOKER]
+            if non_joker_cards:
+                chosen_card = random.choice(non_joker_cards)
+                self.cards.add_card(chosen_card)
+                visible_cards.cards.remove(chosen_card)
+            else:
+                self.cards.add_card(deck.draw())
+        else:
+            self.cards.add_card(deck.draw())
+
+        visible_cards.refill_cards(discarded_cards, deck)
+
+
+class DefensiveAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
+        super().__init__(_color, _turn_order)
+        self.str_type = "Defensive AI"
+
+    def place_train_pawns(self, board: Board, discarded_cards: TrainCardsDeck):
+        available_roads = self.get_affordable_roads(self.get_available_roads(board))
+
+        if len(self.pawns) != 0 and available_roads:
+            # Choose roads strategically to block opponents
+            chosen_road = self.choose_blocking_road(available_roads)
+            try:
+                self.pay_road_cost(chosen_road, discarded_cards)
+            except ValueError:
+                return self.change_str
+            self.occupy_road(chosen_road)
+            self.score.value += self.score.player_score_dict[chosen_road.length]
+            self.update_objectives()
+        else:
+            return self.change_str
+
+    def choose_blocking_road(self, available_roads: list):
+        # Implement logic to choose a road that would block opponents
+        # For simplicity, we randomly choose a road
+        return random.choice(available_roads)
+
+
+class BalancedAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
+        super().__init__(_color, _turn_order)
+        self.str_type = "Balanced AI"
+
+    def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
+                  visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
+        # Balance between drawing cards, drawing objectives, and occupying roads
+        choices = [1, 2, 3]
+        choice = random.choice(choices)
+
+        if choice == 1:
+            self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
+        elif choice == 2:
+            c = self.draw_objective_card(objective_cards_deck)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        elif choice == 3:
+            c = self.place_train_pawns(board, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        return choice
+
+
+class MLBasedAIPlayer(AIPlayer):
+    def __init__(self, _color: PlayerColorEnum, _turn_order: int):
+        super().__init__(_color, _turn_order)
+        self.str_type = "ML Based AI"
+        model_path = os.path.join('src', 'Model', 'trained_model.pkl')
+        self.model = joblib.load(model_path)  # Load trained model
+
+    def play_turn(self, board: Board, objective_cards_deck: ObjectiveCardsDeck, train_cards_deck: TrainCardsDeck,
+                  visible_train_cards_deck: VisibleTrainCardsDeck, discarded_train_cards: TrainCardsDeck):
+        # Extract features from game state
+        features = self.extract_features(visible_train_cards_deck)
+
+        # Predict action with ML model
+        action = self.model.predict([features])[0]
+
+        # Execute predicted action
+        if action == 1:
+            self.draw_train_card(train_cards_deck, visible_train_cards_deck, discarded_train_cards)
+        elif action == 2:
+            self.draw_objective_card(objective_cards_deck)
+        elif action == 3:
+            c = self.place_train_pawns(board, discarded_train_cards)
+            if c == self.change_str:
+                return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                      discarded_train_cards)
+        else:
+            return self.play_turn(board, objective_cards_deck, train_cards_deck, visible_train_cards_deck,
+                                  discarded_train_cards)
+
+    def extract_features(self, visible_train_cards_deck):
+        # Simple implementation example of features extraction
+        features = [
+            len(self.objectives.cards),             # Nombre de cartes objectifs dans la main du joueur
+            len(self.cards.cards),                  # Nombre de cartes de train dans la main du joueur
+            len(visible_train_cards_deck.cards),    # Nombre de cartes de train visibles
+            len(self.pawns),                        # Nombre de pions restants sur le plateau pour le joueur
+            self.score.value                        # Scores des joueurs
+        ]
+
+        return np.array(features)

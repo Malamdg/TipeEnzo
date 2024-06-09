@@ -27,6 +27,14 @@ class ObjectiveCard(Card):
         self.start = start_city
         self.destination = destination_city
         self.points = points
+        self.completed = False
+
+    def set_completed(self):
+        self.completed = True
+
+    def get_value(self):
+        direction = 1 if self.completed else -1
+        return self.points * direction
 
     def __str__(self):
         return f"From {self.start.value.capitalize()} to {self.destination.value.capitalize()} | {self.points}pts"
@@ -109,10 +117,13 @@ class TrainCardsDeck(Deck):
 
     def count_by_color(self):
         color_count_dict = {}
+        if None in self.cards:
+            while None in self.cards:
+                self.cards.remove(None)
+
         for card in self.cards:
             if card not in color_count_dict:
-                color_count_dict[card.color.value[0]] = 1
-                continue
+                color_count_dict[card.color.value[0]] = 0
             color_count_dict[card.color.value[0]] += 1
         return color_count_dict
 
